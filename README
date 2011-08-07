@@ -1,0 +1,49 @@
+The biggest point of interest here is probably categories.lua. You'll need lua
+5.1, luasocket, and luafilesystem to run it. Windows users can just install
+LuaForWindows and get everything they need.
+
+To install it, put this directory -inside- your steam directory; ie, things
+should look like this:
+
+Steam/
+  Steam.exe
+  ClientRegistry.blob
+  Steam.log
+  steamtools/
+    README
+    categories.lua
+
+!!! EXIT STEAM BEFORE YOU RUN THIS !!!
+
+To run it, just run categories.lua. It'll autodetect the last user to log in to
+steam and create a new directory for them containing a file for each game they
+own, and a directory for each category. You can now move the files around,
+create, delete or categories, and the like; when you re-run the program it will
+update your Steam category information. Every time you run it, it'll update
+Steam's categories based on where you put the files, then add files for any new
+games you've acquired since last time you ran it.
+
+If you want to re-create this directory from Steam's saved categories, just
+delete it and run the program again.
+
+If something goes horribly wrong and it completely destroys your Steam
+configuration or something, it's created a backup; delete this file:
+  Steam/userdata/<your user id>/7/remote/sharedconfig.vdf
+And replace it with this one:
+  Steam/userdata/<your user id>/7/remote/sharedconfig.vdf.backup
+This is the only Steam file it changes.
+
+
+There are also three smaller tools included:
+
+backloggery.lua will upload a game list to Backloggery.com. Documentation is in
+the comments.
+
+steamids.lua and steamgames.lua will read a game list from your Steam community
+page (run as 'lua steamids.lua <community profile name>') and output it as
+"ID\tName" for the former and "PC\tREADY\tName" for the latter - the latter
+format is meant to be used with backloggery.lua.
+
+steamlib.lua and steamlib/vdf.lua are only of interest to programmers; they
+comprise a library for getting Steam-related information and saving and loading
+steam VDF files.
