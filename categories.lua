@@ -20,15 +20,14 @@ function initlibs()
 end
 
 function find_user()
-    if not lfs.attributes("../userdata") then
-        io.eprintf("Couldn't stat ../userdata - make sure organizer is installed properly\n")
-        io.eprintf("(i.e in its own directory inside your Steam install directory\n")
-        return nil
-    end
-    
     -- examine Steam log file to figure out who we should be reading the game
     -- list for
     io.printf("Reading log to find last logged in user...\n")
+    
+    if not lfs.attributes("../steam.log") then
+        io.eprintf("Couldn't find ../steam.log - make sure that you installed this program\nin the right place!")
+        return nil
+    end
     
     local user = {}
     for line in io.lines("../steam.log") do
@@ -145,8 +144,16 @@ function main(...)
     
     io.printf("Reading Steam's category information...\n")
     local sharedconfig = assert(steam.loadVDF("../userdata/"..(user.Z*2 + user.Y).."/7/remote/sharedconfig.vdf"))
-    local categories = sharedconfig.UserRoamingConfigStore.Software.Valve.Steam.apps
-    
+    local categories
+    if sharedconfig.UserRoamingConfigStore then
+        categories = sharedconfig.UserRoamingConfigStore.Software.Valve.Steam.apps
+    elseif sharedconfig.UserLocalConfigStore then
+        categories = sharedconfig.UserLocalConfigStore.Software.Valve.Steam.apps
+    else
+        io.eprintf("Couldn't find cloud (UserRoamingConfigStore) or local (UserLocalConfigStore)\ncategory information, bailing...\n")
+        return 1;
+    end
+        
     io.printf("Loading %s's game list...\n", user.name)
     local games = steam.games(user.X, user.Y, user.Z)
     
