@@ -70,6 +70,9 @@ local function apply_user_categories(games, categories)
         -- determine appID of game
         game = lfs.sanitize(game)
         local id = io.readfile((category and category.."/" or "")..game)
+        if category then
+            category = (io.readfile(category.."/category.txt") or category):trim()
+        end
 
         -- update game tags
         if not categories[id] then
