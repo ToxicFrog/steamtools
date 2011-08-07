@@ -171,4 +171,7 @@ function main(...)
     return 0
 end
 
-return main(...)
+main(...)
+io.printf("\n\nPress enter to quit...")
+io.read()
+
