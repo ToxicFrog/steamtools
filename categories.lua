@@ -1,20 +1,22 @@
-require "lfs"
-require "util.io"
-require "steamlib"
-
-function lfs.dirdot(path)
-    local iter = lfs.dir(path)
-    return function()
-        local path
-        repeat
-            path = iter()
-        until not path or path:sub(1,1) ~= "."
-        return path
+function initlibs()
+    require "lfs"
+    require "util.io"
+    require "steamlib"
+    
+    function lfs.dirdot(path)
+        local iter = lfs.dir(path)
+        return function()
+            local path
+            repeat
+                path = iter()
+            until not path or path:sub(1,1) ~= "."
+            return path
+        end
     end
-end
-
-function lfs.sanitize(path)
-    return (path:gsub([=[[/\:*?"<>|]]=], "_"))
+    
+    function lfs.sanitize(path)
+        return (path:gsub([=[[/\:*?"<>|]]=], "_"))
+    end
 end
 
 function find_user()
@@ -122,6 +124,8 @@ local function add_new_games(games, categories)
 end
 
 function main(...)
+    initlibs()
+    
     local user = find_user()
     if not user then
         io.eprintf("Couldn't determine name and ID of last logged in user.\n")
@@ -171,7 +175,11 @@ function main(...)
     return 0
 end
 
-main(...)
+local r,e = xpcall(main, debug.traceback)
+if not r then
+    io.eprintf("Error in execution: %s\n", e)
+end
+
 io.printf("\n\nPress enter to quit...")
 io.read()
 
