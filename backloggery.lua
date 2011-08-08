@@ -27,9 +27,6 @@
 USER    = "Example"
 COOKIE  = "c_user=Example; c_pass=1234; __utma=1234; __utmc=1234; __utmz=1234; __utmb=1234"
 
-USER    = "ToxicFrog"
-COOKIE  = "c_user=ToxicFrog; c_pass=05707ebbb9c4b2e71fb8616485e12372; __utmz=87846411.1311867177.1.1.utmccn=(direct)|utmcsr=(direct)|utmcmd=(none); __utma=87846411.1191801081.1311867177.1311867177.1311876714.2; __utmc=87846411; __utmb=87846411"
-
 -- completion status of individual games. The completion status you report to
 -- the program will be looked up here and thus translated into a completion
 -- status that Backloggery understands.
