@@ -23,3 +23,8 @@ end
 function io.eprintf(...)
     return io.stderr:write(string.format(...))
 end
+
+function io.prompt(...)
+    io.printf(...)
+    return io.read()
+end
