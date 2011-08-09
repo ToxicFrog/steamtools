@@ -197,7 +197,7 @@ function bl:addgame(game)
     fields.complete = bl.completecode(fields.complete)
     
     assert(fields.name and fields.complete, "invalid argument to bl:addgame - name and completion status required")
-    assert(bl.platforms[fields.complete], "invalid argument to bl:addgame - platform '"..tostring(fields.console).."' is not supported by backloggery")
+    assert(bl.platforms[fields.console], "invalid argument to bl:addgame - platform '"..tostring(fields.console).."' is not supported by backloggery")
 
     local body = socket.http.mkpost(fields)
     
@@ -287,17 +287,23 @@ function bl.completecode(complete)
     end
     
     local code = {
-        unfinished = 1;
-        beaten = 2;
-        complete = 3;
-        mastered = 4;
-        null = 5;
+        "unfinished",
+        "beaten finished done",
+        "completed",
+        "mastered",
+        "null casual multiplayer sandbox"
     }
     
-    return code[complete]
+    for i,v in ipairs(code) do
+        if v:match(complete:lower()) then
+            return i
+        end
+    end
+    
+    return nil
 end
 
 function bl.completestring(code)
-    local complete = { "unfinished", "beaten", "complete", "mastered", "null" }
+    local complete = { "unfinished", "beaten", "completed", "mastered", "null" }
     return complete[code]
 end
