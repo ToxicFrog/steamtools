@@ -212,7 +212,7 @@ function bl:addgame(game)
     local r,e = socket.http.request {
         method = "POST";
         url = "http://backloggery.com/newgame.php?user="..self.user;
-        headers = head;
+        headers = headers;
         source = ltn12.source.string(body);
         sink = ltn12.sink.table(response);
     }
@@ -223,7 +223,7 @@ function bl:addgame(game)
         return nil,tostring(e)
     end
 
-    return r
+    return table.concat(response):match([[<div class="update%-r">(.-)</div>]]) or table.concat(response)
 end
 
 -- returns true if the user has a game of this name, and false otherwise
