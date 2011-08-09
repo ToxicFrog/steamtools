@@ -222,8 +222,12 @@ function bl:addgame(game)
     if not r then
         return nil,tostring(e)
     end
+    
+    if table.concat(response):match([[<div class="update%-r">(.-)</div>]]) then
+        return nil,table.concat(response):match([[<div class="update%-r">(.-)</div>]])
+    end
 
-    return table.concat(response):match([[<div class="update%-r">(.-)</div>]]) or table.concat(response)
+    return table.concat(response):match([[<div class="update%-g">(.-)</div>]]) or true
 end
 
 -- returns true if the user has a game of this name, and false otherwise
