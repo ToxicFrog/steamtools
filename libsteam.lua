@@ -15,12 +15,14 @@ function steam:__tostring()
 end
 
 function steam.open(path, X, Y, Z)
-    path = path:gsub("[^/\\]+$", "")
-    local stat,err = lfs.attributes(path.."/Steam.exe")
+    path = path:gsub("[/\\]?[^/\\]+$", "")
     
-    if not stat then
-        return nil,"Couldn't find steam.exe: "..err
+    -- we do it using io.open because lfs.attributes has useless error messages
+    local fd,err = io.open(path.."/Steam.exe", "rb")
+    if not fd then
+        return nil,"Couldn't find Steam.exe: "..err
     end
+    fd:close()
     
     local self = {
         path = path;
