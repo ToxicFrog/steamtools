@@ -94,7 +94,7 @@ function main(...)
     -- now, we read the contents of the edited file so that we can upload the games
     -- to backloggery.
     for line in io.lines("backloggery.txt") do
-        local status,name = line:match("(%w+)%s+(.*)")
+        local status,name = line:match("^(%w+)%s+(.*)")
         if status and name then
             local wishlist
             if status == "wishlist" then
