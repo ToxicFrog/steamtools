@@ -15,8 +15,15 @@ going to add (backloggery.txt) and launch notepad to edit it. Instructions for
 editing it are included in the file. Feel free to use another editor if you
 like, but don't close notepad until you're done.
 
-When you close notepad, it will read the edited file and create entries for all
-of the games listed there in your Backloggery.
+When you close notepad, it will prompt you for a Backloggery category to use,
+and then add entries for all of the listed games to Backloggery. It is
+recommended that you use "PC", "PCDL" (PC Download), or "Steam" as the category,
+but it won't stop you from filing them under PS2 or SNES or whatever. If you
+enter a category that Backloggery doesn't support, it'll re-prompt.
+
+There is also a configuration file, "steam2backloggery.cfg", for configuring
+commonly used settings. The contents of this file should be fairly self-
+explanatory.
 
 ==== NOTES AND LIMITATIONS ====
 
