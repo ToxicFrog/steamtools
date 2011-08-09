@@ -1,8 +1,8 @@
-require "libbl"
-require "libsteam"
-require "util.io"
-
 function main(...)
+    require "libbl"
+    require "libsteam"
+    require "util.io"
+
     -- initialize Steam
     local path = io.prompt("Steam location (drag-and drop steam.exe): ")
     
