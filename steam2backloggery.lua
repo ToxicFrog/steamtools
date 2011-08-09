@@ -97,7 +97,7 @@ function main(...)
     
     local platform = CONSOLE
     while not bl.platforms[platform] do
-        platform = prompt("Enter a Backloggery category (recommended: PC, PCDL, or Steam): ")
+        platform = io.prompt("Enter a Backloggery category (recommended: PC, PCDL, or Steam): ")
     end
     
     -- now, we read the contents of the edited file so that we can upload the games

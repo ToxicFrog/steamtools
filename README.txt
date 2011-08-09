@@ -23,8 +23,6 @@ of the games listed there in your Backloggery.
 It won't add a game twice, so it's safe to run this whenever you get new games
 on Steam.
 
-All games are added with platform "PC" (not "Steam").
-
 There is currently no support for Steam categories; all games default to being
 added as "unfinished" regardless of which category they're in. This is planned
 for a future version (along with a program to easily reorganize your Steam
@@ -33,5 +31,5 @@ categories).
 It cannot distinguish between normal games, DLC, free trials, and beta tests;
 all of these will show up in the list.
 
-Related to the above, there's no way to permanently ignore a game. This too may
-come in a future version.
+Related to the above, there's no way to permanently ignore a game. This may come
+in a future version.
