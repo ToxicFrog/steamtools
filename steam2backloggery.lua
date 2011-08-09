@@ -62,17 +62,17 @@ function main(...)
     
     io.output("backloggery.txt")
     io.write [[
-    # This is a list of all of the games steam2backloggery is going to add to your
-    # backloggery account.
-    # Please edit this list as you see fit, then save and exit. In particular, you
-    # probably want to at least:
-    # * change "unfinished" to "beaten", "complete", "mastered", or "null" as needed
-    # * delete DLC from the list
-    # Lines starting with '#' will be ignored.
-    # If you decide that you've made a terrible mistake and don't want to upload
-    # *anything* to your backloggery account, just erase everything in this file
-    # and then save and exit.
-    ]]
+# This is a list of all of the games steam2backloggery is going to add to your
+# backloggery account.
+# Please edit this list as you see fit, then save and exit. In particular, you
+# probably want to at least:
+# * change "unfinished" to "beaten", "complete", "mastered", or "null" as needed
+# * delete DLC from the list
+# Lines starting with '#' will be ignored.
+# If you decide that you've made a terrible mistake and don't want to upload
+# *anything* to your backloggery account, just erase everything in this file
+# and then save and exit.
+]]
     for _,game in ipairs(games) do
         io.printf("%-16s%s\n", game.status, game.name)
     end
@@ -114,7 +114,7 @@ function main(...)
     io.printf("Backloggery updated. Have a nice day!\n")
 end
 
-local r,e = pcall(main(...))
+local r,e = xpcall(main, debug.traceback)
 if not r then
     io.eprintf("An error occurred! Please report this to the developer.\n%s\n", e)
 end
