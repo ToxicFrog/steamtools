@@ -12,7 +12,7 @@ function main(...)
         return 1
     end
     
-    io.printf("Found Steam account %s\n", tostring(steam))
+    io.printf("Found Steam account %s\n\n", tostring(steam))
     
     -- initialize Backloggery
     local user = io.prompt("Backloggery username: ")
@@ -24,10 +24,10 @@ function main(...)
         io.eprintf("Couldn't log in: %s\n", err)
         return 1
     else
-        io.printf("Login as '%s' successful.\n", user)
+        io.printf("Logged in to Backloggery as %s.\n\n", user)
     end
     
-    io.printf("\nLoading Steam game lists:"); io.flush()
+    io.printf("Loading Steam game lists:"); io.flush()
     io.printf(" games"); io.flush(); steam:games()
     io.printf(" wishlist"); io.flush(); steam:wishlist()
     io.printf(" done.\nLoading Backloggery game lists:"); io.flush()
@@ -76,8 +76,10 @@ function main(...)
     for _,game in ipairs(games) do
         io.printf("%-16s%s\n", game.status, game.name)
     end
+    io.close()
+    
     io.output(io.stdout)
-    io.printf("Launching editor so user can review game list..."); io.flush()
+    io.printf("Launching editor so you can can review the game list..."); io.flush()
     if os.execute("notepad backloggery.txt") > 0 then
         io.eprintf("\nError executing editor! Aborting.")
         return 1
@@ -113,5 +115,5 @@ function main(...)
 end
 
 main(...)
-io.printf("Press enter to quit...\n")
+io.printf("\nPress enter to quit...\n")
 io.read()
