@@ -105,13 +105,17 @@ function main(...)
             if not bl.completecode(status) then
                 io.eprintf("Warning: skipping game '%s': unknown status '%s'\n", name, status)
             else
-                io.printf("Adding %s game '%s'%s\n", status, name, wishlist and " to wishlist" or "") 
-                cookie:addgame {
+                local r,e = cookie:addgame {
                     name = name:trim();
                     console = "PC";
                     complete = status;
                     wishlist = wishlist;
                 }
+                if r then
+                    io.printf("Added %s game '%s'%s\n", status, name, wishlist and " to wishlist" or "")
+                else
+                    io.printf("Couldn't add '%s': %s\n", name, e)
+                end
             end
         end
     end

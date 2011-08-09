@@ -223,7 +223,7 @@ function bl:addgame(game)
         return nil,tostring(e)
     end
 
-    return true
+    return r
 end
 
 -- returns true if the user has a game of this name, and false otherwise
