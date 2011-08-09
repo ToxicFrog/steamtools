@@ -2,9 +2,13 @@ function main(...)
     require "libbl"
     require "libsteam"
     require "util.io"
+    
+    if loadfile("steam2backloggery.cfg") then
+        loadfile("steam2backloggery.cfg")()
+    end
 
     -- initialize Steam
-    local path = io.prompt("Steam location (drag-and drop steam.exe): ")
+    local path = STEAM or io.prompt("Steam location (drag-and drop steam.exe): ")
     
     local steam,err = steam.open(path:gsub('^"(.*)"$', '%1'))
     if not steam then
@@ -15,8 +19,8 @@ function main(...)
     io.printf("Found Steam account %s\n\n", tostring(steam))
     
     -- initialize Backloggery
-    local user = io.prompt("Backloggery username: ")
-    local pass = io.prompt("Backloggery password: ")
+    local user = USER or io.prompt("Backloggery username: ")
+    local pass = PASS or io.prompt("Backloggery password: ")
     
     local cookie,err = bl.login(user,pass)
     
@@ -89,10 +93,16 @@ function main(...)
         io.eprintf("\nError executing editor! Aborting.")
         return 1
     end
-    io.printf("done.\n\nUpdating your Backloggery.\n")
+    io.printf("done.\n\n")
+    
+    local platform = CONSOLE
+    while not bl.platforms[platform] do
+        platform = prompt("Enter a Backloggery category (recommended: PC, PCDL, or Steam): ")
+    end
     
     -- now, we read the contents of the edited file so that we can upload the games
     -- to backloggery.
+    io.printf("\nUpdating your Backloggery.\n")
     for line in io.lines("backloggery.txt") do
         local status,name = line:match("^(%w+)%s+(.*)")
         if status and name then
@@ -107,7 +117,7 @@ function main(...)
             else
                 local r,e = cookie:addgame {
                     name = name:trim();
-                    console = "PC";
+                    console = platform;
                     complete = status;
                     wishlist = wishlist;
                 }
