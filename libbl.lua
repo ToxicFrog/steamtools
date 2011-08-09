@@ -211,7 +211,7 @@ function bl:addgame(game)
     local response = {}
     local r,e = socket.http.request {
         method = "POST";
-        url = "http://backloggery.com/newgame.php?user="..USER;
+        url = "http://backloggery.com/newgame.php?user="..self.user;
         headers = head;
         source = ltn12.source.string(body);
         sink = ltn12.sink.table(response);

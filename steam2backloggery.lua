@@ -33,7 +33,7 @@ function main(...)
     io.printf(" done.\nLoading Backloggery game lists:"); io.flush()
     io.printf(" games"); io.flush(); cookie:games()
     io.printf(" wishlist"); io.flush(); cookie:wishlist()
-    io.printf(" done.\n")
+    io.printf(" done.\n\n")
     
     io.printf("Filtering games:"); io.flush()
     local games = {}
@@ -58,20 +58,25 @@ function main(...)
         end
     end
     io.printf(" %d wishlisted games,", count); io.flush()
-    io.printf(" %d games to add.\n", #games)
+    io.printf(" %d games to add.\n\n", #games)
     
     io.output("backloggery.txt")
     io.write [[
 # This is a list of all of the games steam2backloggery is going to add to your
 # backloggery account.
+#
 # Please edit this list as you see fit, then save and exit. In particular, you
-# probably want to at least:
-# * change "unfinished" to "beaten", "complete", "mastered", or "null" as needed
+# probably want to check the following:
+#
+# * change "unfinished" to "beaten", "completed", "mastered", or "null" as needed
 # * delete DLC from the list
+#
 # Lines starting with '#' will be ignored.
+#
 # If you decide that you've made a terrible mistake and don't want to upload
 # *anything* to your backloggery account, just erase everything in this file
 # and then save and exit.
+#
 ]]
     for _,game in ipairs(games) do
         io.printf("%-16s%s\n", game.status, game.name)
@@ -84,13 +89,13 @@ function main(...)
         io.eprintf("\nError executing editor! Aborting.")
         return 1
     end
-    io.printf("done.\n")
+    io.printf("done.\n\nUpdating your Backloggery.\n")
     
     -- now, we read the contents of the edited file so that we can upload the games
     -- to backloggery.
     for line in io.lines("backloggery.txt") do
-        if not line:match("^#") then
-            local status,name = line:match("(%w+)%s+(.*)")
+        local status,name = line:match("(%w+)%s+(.*)")
+        if status and name then
             local wishlist
             if status == "wishlist" then
                 status = "unfinished"
