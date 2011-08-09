@@ -4,7 +4,7 @@ require "util.io"
 
 function main(...)
     -- initialize Steam
-    local path = io.prompt("Drag-and-drop steam.exe here: ")
+    local path = io.prompt("Steam location (drag-and drop steam.exe): ")
     
     local steam,err = steam.open(path)
     if not steam then
@@ -90,7 +90,7 @@ function main(...)
     -- to backloggery.
     for line in io.lines("backloggery.txt") do
         if not line:match("^#") then
-            local status,name = line:match("(%w+)%s+.*")
+            local status,name = line:match("(%w+)%s+(.*)")
             local wishlist
             if status == "wishlist" then
                 status = "unfinished"
@@ -102,7 +102,7 @@ function main(...)
             else
                 io.printf("Adding %s game '%s'%s\n", status, name, wishlist and " to wishlist" or "") 
                 cookie:addgame {
-                    name = name;
+                    name = name:trim();
                     console = "PC";
                     complete = status;
                     wishlist = wishlist;
@@ -114,6 +114,10 @@ function main(...)
     io.printf("Backloggery updated. Have a nice day!\n")
 end
 
-main(...)
+local r,e = pcall(main(...))
+if not r then
+    io.eprintf("An error occurred! Please report this to the developer.\n%s\n", e)
+end
+
 io.printf("\nPress enter to quit...\n")
 io.read()
