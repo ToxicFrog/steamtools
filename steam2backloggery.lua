@@ -6,7 +6,7 @@ function main(...)
     -- initialize Steam
     local path = io.prompt("Steam location (drag-and drop steam.exe): ")
     
-    local steam,err = steam.open(path)
+    local steam,err = steam.open(path:gsub('^"(.*)"$', '%1'))
     if not steam then
         io.eprintf("Couldn't read Steam directory: %s\n", err)
         return 1
