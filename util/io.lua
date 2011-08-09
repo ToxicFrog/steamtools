@@ -28,3 +28,12 @@ function io.prompt(...)
     io.printf(...)
     return io.read()
 end
+
+function io.safe_lines(path)
+    local result,iter = pcall(io.lines, path)
+    if not result then
+        return function() end
+    else
+        return iter
+    end
+end

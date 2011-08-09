@@ -1,6 +1,7 @@
 require "socket.http"
 require "util.http"
 require "ltn12"
+require "util.string"
 
 bl = {}
 
@@ -204,7 +205,6 @@ function bl:addgame(game)
         ["content-type"] = "application/x-www-form-urlencoded";
         ["content-length"] = tostring(#body);
         ["referer"] = "http://backloggery.com/newgame.php?user="..self.user;
-        --["user-agent"] = "Opera/9.80 (X11; Linux x86_64; U; en) Presto/2.8.131 Version/11.10";
         ["cookie"] = table.concat(self, "; ")
     }
 
@@ -217,6 +217,8 @@ function bl:addgame(game)
         sink = ltn12.sink.table(response);
     }
     
+    socket.sleep(1)
+    
     if not r then
         return nil,tostring(e)
     end
@@ -226,42 +228,56 @@ end
 
 -- returns true if the user has a game of this name, and false otherwise
 function bl:hasgame(game)
-    return self:search(game)[game] ~= nil
+    return self:games()[game] ~= nil or self:wishlist()[game] ~= nil
 end
 
--- returns the set of all games matching the given criteria
-function bl:search(filter)
-    if type(filter) == "string" then
-        filter = { search = filter }
-    end
-    
-    local defaults = {
-        user = self.user;
-        search = ""; -- search string goes here
-        console = "";
-        rating = "";
-        status = "";
-        own = "";
-        region = "";
-        region_u = 0;
-        wish = "";
-        alpha = "";
-        temp_sys = "ZZZ";
-        total = 0;
-        aid = 1;
-        ajid = 0;
-    }
-    
-    for k,v in pairs(filter) do defaults[k] = v end
-        
-    local body = socket.http.request("http://backloggery.com/ajax_moregames.php?"..socket.http.mkpost(defaults))
+local function getAllGames(self, wishlist)
     local games = {}
     
-    for game in body:gmatch("games.php.-<b>(.-)</b>") do
-        games[game] = true
+    local id, temp_sys, aj_id, total = 1, "ZZZ", 0, 0
+    local function getMoreGames(wishlist)
+        local fields = {
+            user = self.user;
+            temp_sys = temp_sys;
+            total = total;
+            aid = id;
+            ajid = aj_id;
+            search = ""; console = ""; rating = ""; status = ""; own = "";
+            region = ""; region_u = 0; wish = wishlist and "1" or ""; alpha = "";
+        }
+        
+        local body = socket.http.request("http://backloggery.com/ajax_moregames.php?"..socket.http.mkpost(fields))
+        socket.sleep(1)
+        
+        for status,name in body:gmatch("games%.php.-status=(%d+).-<b>(.-)</b>") do
+            games[name] = {
+                name = name:trim();
+                status = bl.completestring(tonumber(status));
+            }
+        end
+        
+        id,temp_sys,aj_id,total = body:match([[getMoreGames%((%d+),%s*'(.-)',%s*'(%d+)',%s*(%d+)%)]])
     end
     
+    repeat getMoreGames(wishlist) until not id
+    
     return games
+end
+    
+function bl:games()
+    if not self._games then
+        self._games = getAllGames(self, false)
+    end
+    
+    return self._games
+end
+
+function bl:wishlist()
+    if not self._wishlist then
+        self._wishlist = getAllGames(self, true)
+    end
+    
+    return self._wishlist
 end
 
 -- translate a completion string into a numeric completion code
@@ -279,4 +295,9 @@ function bl.completecode(complete)
     }
     
     return code[complete]
+end
+
+function bl.completestring(code)
+    local complete = { "unfinished", "beaten", "complete", "mastered", "null" }
+    return complete[code]
 end
