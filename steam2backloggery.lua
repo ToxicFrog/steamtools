@@ -4,12 +4,9 @@ require "util.io"
 
 function main(...)
     -- initialize Steam
-    if not ... then
-        io.eprintf("Please run this program by drag-and-dropping your Steam directory onto it.\n")
-        return 1
-    end
+    local path = io.prompt("Drag-and-drop steam.exe here: ")
     
-    local steam,err = steam.open((...))
+    local steam,err = steam.open(path)
     if not steam then
         io.eprintf("Couldn't read Steam directory: %s\n", err)
         return 1

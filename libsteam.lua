@@ -15,6 +15,7 @@ function steam:__tostring()
 end
 
 function steam.open(path, X, Y, Z)
+    path = path:gsub("[^/\\]+$", "")
     local stat,err = lfs.attributes(path.."/Steam.exe")
     
     if not stat then
