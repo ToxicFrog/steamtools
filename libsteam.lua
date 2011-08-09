@@ -15,7 +15,8 @@ function steam:__tostring()
 end
 
 function steam.open(path, X, Y, Z)
-    path = path:gsub("[/\\]?[^/\\]+$", "")
+    -- strip quotes and trailing filename
+    path = path:gsub('^"(.*)"$', '%1'):gsub("[/\\]?[^/\\]+$", "")
     
     -- we do it using io.open because lfs.attributes has useless error messages
     local fd,err = io.open(path.."/Steam.exe", "rb")
