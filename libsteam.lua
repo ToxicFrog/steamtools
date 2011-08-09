@@ -97,5 +97,5 @@ end
 
 -- return the URL of this user's Steam Community page
 function steam:community_url()
-    return "http://steamcommunity.com/profiles/7656%d" % (self.Y + self.Z * 2 + 1197960265728)
+    return "http://steamcommunity.com/profiles/7656%.0f" % (self.Y + self.Z * 2 + 1197960265728)
 end
