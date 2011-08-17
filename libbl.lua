@@ -170,6 +170,43 @@ function bl.login(user, pass)
     return setmetatable(cookies, bl)
 end
 
+local function request(self, fields, method, url)
+    local body = socket.http.mkpost(fields)
+    
+    local headers = {
+        ["referer"] = "http://backloggery.com/newgame.php?user="..self.user;
+        ["cookie"] = table.concat(self, "; ")
+    }
+
+    if method == "POST" then
+        headers["content-type"] = "application/x-www-form-urlencoded"
+        headers["content-length"] = tostring(#body)
+    end
+
+    local response = {}
+    local request = {
+        method = method;
+        url = url;
+        headers = headers;
+        sink = ltn12.sink.table(response);
+    }
+    
+    if method == "POST" then
+        request.source = ltn12.source.string(body)
+    else
+        request.url = url.."?"..body
+    end
+
+    local r,e = socket.http.request(request)
+    socket.sleep(1)
+    
+    if r then
+        return table.concat(response)
+    else
+        return nil,e
+    end
+end
+
 -- add a game to a backloggery account. Required fields are "name", "console",
 -- and "complete". Other fields are optional.
 function bl:addgame(game)
@@ -198,36 +235,22 @@ function bl:addgame(game)
     
     assert(fields.name and fields.complete, "invalid argument to bl:addgame - name and completion status required")
     assert(bl.platforms[fields.console], "invalid argument to bl:addgame - platform '"..tostring(fields.console).."' is not supported by backloggery")
-
-    local body = socket.http.mkpost(fields)
     
-    local headers = {
-        ["content-type"] = "application/x-www-form-urlencoded";
-        ["content-length"] = tostring(#body);
-        ["referer"] = "http://backloggery.com/newgame.php?user="..self.user;
-        ["cookie"] = table.concat(self, "; ")
-    }
+    if self:hasgame(fields.name) then
+        return nil,"game '%s' is already in this Backloggery" % fields.name
+    end
 
-    local response = {}
-    local r,e = socket.http.request {
-        method = "POST";
-        url = "http://backloggery.com/newgame.php?user="..self.user;
-        headers = headers;
-        source = ltn12.source.string(body);
-        sink = ltn12.sink.table(response);
-    }
-    
-    socket.sleep(1)
+    local r,e = request(self, fields, "POST", "http://backloggery.com/newgame.php?user="..self.user)
     
     if not r then
         return nil,tostring(e)
     end
     
-    if table.concat(response):match([[<div class="update%-r">(.-)</div>]]) then
-        return nil,table.concat(response):match([[<div class="update%-r">(.-)</div>]])
+    if r:match([[<div class="update%-r">(.-)</div>]]) then
+        return nil,r:match([[<div class="update%-r">(.-)</div>]])
     end
 
-    return table.concat(response):match([[<div class="update%-g">(.-)</div>]]) or true
+    return r:match([[<div class="update%-g">(.-)</div>]]) or true
 end
 
 -- returns true if the user has a game of this name, and false otherwise
@@ -250,14 +273,16 @@ local function getAllGames(self, wishlist)
             region = ""; region_u = 0; wish = wishlist and "1" or ""; alpha = "";
         }
         
-        local body = socket.http.request("http://backloggery.com/ajax_moregames.php?"..socket.http.mkpost(fields))
-        socket.sleep(1)
+        local body = request(self, fields, "GET", "http://backloggery.com/ajax_moregames.php")
         
-        for status,name in body:gmatch("games%.php.-status=(%d+).-<b>(.-)</b>") do
-            games[name] = {
-                name = name:trim();
-                status = bl.completestring(tonumber(status));
-            }
+        for gamebox in body:gmatch([[<section class="gamebox">(.-)</section>]]) do
+            local info = {}
+            info.console,info.complete,info.name = gamebox:match("games%.php.-console=([^&]+).-status=(%d+).-<b>(.-)</b>")
+            info.complete = bl.completestring(tonumber(info.complete))
+            info.note = gamebox:match([[<div class="gamerow">([^<]+)</div>$]]) or ""
+            info.wishlist = wishlist
+            info.id = tonumber(gamebox:match([[gameid=(%d+)]]))
+            games[info.name] = info
         end
         
         id,temp_sys,aj_id,total = body:match([[getMoreGames%((%d+),%s*'(.-)',%s*'(%d+)',%s*(%d+)%)]])

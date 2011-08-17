@@ -131,13 +131,7 @@ function main(...)
     end
     
     io.printf("Backloggery updated. Have a nice day!\n")
+    os.remove("backloggery.txt")
 end
 
-local r,e = xpcall(main, debug.traceback)
-if not r then
-    io.eprintf("An error occurred! Please report this to the developer.\n%s\n", e)
-end
-
-os.remove("backloggery.txt")
-io.printf("\nPress enter to quit...\n")
-io.read()
+require "app"
