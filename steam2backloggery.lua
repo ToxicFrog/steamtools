@@ -3,10 +3,45 @@ function main(...)
     require "libsteam"
     require "util.io"
     
-    if loadfile("steam2backloggery.cfg") then
-        loadfile("steam2backloggery.cfg")()
+    local function loadconfig()
+        if loadfile("steam2backloggery.cfg") then
+            loadfile("steam2backloggery.cfg")()
+        else
+            io.eprintf("Warning: couldn't load steam2backloggery.cfg\nError message was: %s\nUsing default settings\n\n"
+                     , tostring(select(2, loadfile("steam2backloggery.cfg"))))
+        end
     end
+    
+    local function mkignored(ignore)
+        local patterns = {}
+        for pattern in IGNORE:gmatch("%s*([^\n]+)") do
+            pattern = pattern:gsub("%W"
+                      , function(c)
+                          if c == "*" then
+                              return ".*"
+                          else
+                              return "%"..c
+                          end
+                      end)
+            patterns[#patterns+1] = pattern
+        end
+        return patterns
+    end
+    
+    local function ignored(name)
+        for _,pattern in ipairs(IGNORE) do
+            if name:match(pattern) then
+                return true
+            end
+        end
+        return false
+    end
+    
+    loadconfig()
 
+    -- create ignore list
+    IGNORE = mkignored(IGNORE or "")
+    
     -- initialize Steam
     local path = STEAM or io.prompt("Steam location (drag-and drop steam.exe): ")
     
@@ -44,7 +79,7 @@ function main(...)
     local count = 0
     for _,game in pairs(steam:games()) do
         count = count+1
-        if not cookie:hasgame(game.name) then
+        if not cookie:hasgame(game.name) and not ignored(game.name) then
             games[#games+1] = {
                 name = game.name;
                 status = "unfinished";
@@ -54,7 +89,7 @@ function main(...)
     io.printf(" %d owned games,", count); io.flush(); count = 0
     for _,game in pairs(steam:wishlist()) do
         count = count+1
-        if not cookie:hasgame(game.name) then
+        if not cookie:hasgame(game.name) and not ignored(game.name) then
             games[#games+1] = {
                 name = game.name;
                 status = "wishlist";
