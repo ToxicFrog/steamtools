@@ -4,6 +4,10 @@ function main(...)
     require "util.io"
     
     local function loadconfig()
+        -- default settings
+        EDITOR = "notepad"
+        IGNORE = ""
+        
         if loadfile("steam2backloggery.cfg") then
             loadfile("steam2backloggery.cfg")()
         else
@@ -40,7 +44,7 @@ function main(...)
     loadconfig()
 
     -- create ignore list
-    IGNORE = mkignored(IGNORE or "")
+    IGNORE = mkignored(IGNORE)
     
     -- initialize Steam
     local path = STEAM or io.prompt("Steam location (drag-and drop steam.exe): ")
@@ -137,7 +141,7 @@ function main(...)
     
     io.output(io.stdout)
     io.printf("Launching editor so you can can review the game list..."); io.flush()
-    if os.execute("notepad backloggery.txt") > 0 then
+    if os.execute("%s backloggery.txt" % EDITOR) > 0 then
         io.eprintf("\nError executing editor! Aborting.")
         return 1
     end
