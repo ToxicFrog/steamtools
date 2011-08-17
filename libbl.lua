@@ -275,14 +275,16 @@ local function getAllGames(self, wishlist)
         
         local body = request(self, fields, "GET", "http://backloggery.com/ajax_moregames.php")
         
-        for gamebox in body:gmatch([[<section class="gamebox">(.-)</section>]]) do
-            local info = {}
-            info.console,info.complete,info.name = gamebox:match("games%.php.-console=([^&]+).-status=(%d+).-<b>(.-)</b>")
-            info.complete = bl.completestring(tonumber(info.complete))
-            info.note = gamebox:match([[<div class="gamerow">([^<]+)</div>$]]) or ""
-            info.wishlist = wishlist
-            info.id = tonumber(gamebox:match([[gameid=(%d+)]]))
-            games[info.name] = info
+        for type,gamebox in body:gmatch([[<section class="gamebox([^"]*)">(.-)</section>]]) do
+            if type == "" or type == " nowplaying" then
+                local info = {}
+                info.console,info.complete,info.name = gamebox:match("games%.php.-console=([^&]+).-status=(%d+).-<b>(.-)</b>")
+                info.complete = bl.completestring(tonumber(info.complete))
+                info.note = gamebox:match([[<div class="gamerow">([^<]+)</div>$]]) or ""
+                info.wishlist = wishlist
+                info.id = tonumber(gamebox:match([[gameid=(%d+)]]))
+                games[info.name] = info
+            end
         end
         
         id,temp_sys,aj_id,total = body:match([[getMoreGames%((%d+),%s*'(.-)',%s*'(%d+)',%s*(%d+)%)]])
