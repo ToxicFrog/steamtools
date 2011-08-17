@@ -71,8 +71,8 @@ function main(...)
     end
     
     io.printf("Loading Steam game lists:"); io.flush()
-    io.printf(" games"); io.flush(); steam:games()
-    io.printf(" wishlist"); io.flush(); steam:wishlist()
+    io.printf(" games"); io.flush(); assert(steam:games())
+    io.printf(" wishlist"); io.flush(); assert(steam:wishlist())
     
     if #steam:games() == 0 and #steam:wishlist() == 0 then
         io.eprintf("\n\nCouldn't find any Steam games in Games or Wishlist!\n"
