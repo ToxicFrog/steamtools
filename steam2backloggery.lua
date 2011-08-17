@@ -69,6 +69,14 @@ function main(...)
     io.printf("Loading Steam game lists:"); io.flush()
     io.printf(" games"); io.flush(); steam:games()
     io.printf(" wishlist"); io.flush(); steam:wishlist()
+    
+    if #steam:games() == 0 and #steam:wishlist() == 0 then
+        io.eprintf("\n\nCouldn't find any Steam games in Games or Wishlist!\n"
+                   .."Please double-check that your Steam profile is set to 'public'\n"
+                   .."(And if it is, report this as a bug, along with your Steam ID\n")
+        return 1
+    end
+    
     io.printf(" done.\nLoading Backloggery game lists:"); io.flush()
     io.printf(" games"); io.flush(); cookie:games()
     io.printf(" wishlist"); io.flush(); cookie:wishlist()
@@ -96,8 +104,13 @@ function main(...)
             }
         end
     end
-    io.printf(" %d wishlisted games,", count); io.flush()
-    io.printf(" %d games to add.\n\n", #games)
+    io.printf(" %d wishlisted games, %d games to add.\n\n", count, #games)
+    
+    if #games == 0 then
+        io.printf("No games to add - all of your Steam games are either already\n"
+                .."on Backloggery, or in your steam2backloggery.cfg ignore list.\n")
+        return 0
+    end
     
     io.output("backloggery.txt")
     io.write [[
