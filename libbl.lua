@@ -258,7 +258,11 @@ function bl:hasgame(game)
     return self:games()[game] ~= nil or self:wishlist()[game] ~= nil
 end
 
-local function getAllGames(self, wishlist)
+function bl:info(game)
+    return self:games()[game] or self:wishlist()[game]
+end
+
+local function getAllGames(self, wishlist, key)
     local games = {}
     
     local id, temp_sys, aj_id, total = 1, "ZZZ", 0, 0
@@ -280,10 +284,12 @@ local function getAllGames(self, wishlist)
                 local info = {}
                 info.console,info.complete,info.name = gamebox:match("games%.php.-console=([^&]+).-status=(%d+).-<b>(.-)</b>")
                 info.complete = bl.completestring(tonumber(info.complete))
+                info.console_name = bl.platforms[info.console]
                 info.note = gamebox:match([[<div class="gamerow">([^<]+)</div>$]]) or ""
                 info.wishlist = wishlist
+                info.nowplaying = type == " nowplaying"
                 info.id = tonumber(gamebox:match([[gameid=(%d+)]]))
-                games[info.name] = info
+                games[info[key]] = info
             end
         end
         
@@ -295,9 +301,9 @@ local function getAllGames(self, wishlist)
     return games
 end
     
-function bl:games()
+function bl:games(key)
     if not self._games then
-        self._games = getAllGames(self, false)
+        self._games = getAllGames(self, false, key or "id")
     end
     
     return self._games
@@ -305,7 +311,7 @@ end
 
 function bl:wishlist()
     if not self._wishlist then
-        self._wishlist = getAllGames(self, true)
+        self._wishlist = getAllGames(self, true, key or "id")
     end
     
     return self._wishlist
