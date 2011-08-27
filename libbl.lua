@@ -142,6 +142,15 @@ bl.platforms = {
     ["ZXS"] = "ZX Spectrum";
 }
 
+bl.regions = {
+    [0] = "N.Amer",
+    "Japan",
+    "PAL",
+    "China",
+    "Korea",
+    "Brazil"
+}
+
 bl.__index = bl
 function bl:__tostring()
     return "backloggery:"..self.user
@@ -255,15 +264,11 @@ end
 
 -- returns true if the user has a game of this name, and false otherwise
 function bl:hasgame(game)
-    return self:games()[game] ~= nil or self:wishlist()[game] ~= nil
+    return self:games()[game] ~= nil
 end
 
-function bl:info(game)
-    return self:games()[game] or self:wishlist()[game]
-end
-
-local function getAllGames(self, wishlist, key)
-    local games = {}
+local function getAllGames(self, wishlist, games)
+    games = games or {}
     
     local id, temp_sys, aj_id, total = 1, "ZZZ", 0, 0
     local function getMoreGames(wishlist)
@@ -277,44 +282,47 @@ local function getAllGames(self, wishlist, key)
             region = ""; region_u = 0; wish = wishlist and "1" or ""; alpha = "";
         }
         
-        local body = request(self, fields, "GET", "http://backloggery.com/ajax_moregames.php")
+        local body = assert(request(self, fields, "GET", "http://backloggery.com/ajax_moregames.php"))
         
         for type,gamebox in body:gmatch([[<section class="gamebox([^"]*)">(.-)</section>]]) do
             if type == "" or type == " nowplaying" then
                 local info = {}
                 info.console,info.complete,info.name = gamebox:match("games%.php.-console=([^&]+).-status=(%d+).-<b>(.-)</b>")
-                info.complete = bl.completestring(tonumber(info.complete))
-                info.console_name = bl.platforms[info.console]
+                info.complete = tonumber(info.complete)
                 info.note = gamebox:match([[<div class="gamerow">([^<]+)</div>$]]) or ""
                 info.wishlist = wishlist
-                info.nowplaying = type == " nowplaying"
+                info.playing = type == " nowplaying"
                 info.id = tonumber(gamebox:match([[gameid=(%d+)]]))
-                games[info[key]] = info
+                games[info.id] = info
             end
         end
         
         id,temp_sys,aj_id,total = body:match([[getMoreGames%((%d+),%s*'(.-)',%s*'(%d+)',%s*(%d+)%)]])
     end
     
-    repeat getMoreGames(wishlist) until not id
+    repeat getMoreGames(wishlist) until true or not id
     
     return games
 end
     
 function bl:games(key)
     if not self._games then
-        self._games = getAllGames(self, false, key or "id")
+        self._games = getAllGames(self, false)
+        getAllGames(self, true, self._games)
+        
+        for _,game in pairs(self._games) do
+            game._complete_str = bl.completestring(game.complete)
+            game._console_str = bl.platforms[game.console]
+        end
     end
     
-    return self._games
-end
-
-function bl:wishlist()
-    if not self._wishlist then
-        self._wishlist = getAllGames(self, true, key or "id")
+    key = key or "id"
+    local games = {}
+    for id,game in pairs(self._games) do
+        games[game[key]] = game
     end
     
-    return self._wishlist
+    return games
 end
 
 -- translate a completion string into a numeric completion code
@@ -344,3 +352,48 @@ function bl.completestring(code)
     local complete = { "unfinished", "beaten", "completed", "mastered", "null" }
     return complete[code]
 end
+
+function bl:deletegame(game)
+    assert(type(game) == "number", 'invalid argument to bl;deletegame')
+    
+    local fields = {
+        user = self.user;
+        delete2 = "Stealth Delete";
+    }
+        
+    return request(self, fields, "POST", "http://backloggery.com/update.php?user=%s&gameid=%d" % { self.user, game })
+end
+
+return bl
+
+--[[
+backloggery game editor form field names
+
+    INFORMATION
+name
+comp
+console -- see bl.platforms
+orig_console
+region -- 0..5 -> NA, JP, PAL, China, Korea, Brazil
+own -- 1..4 -> owned, formerly, borrowed, other
+
+    PROGRESS
+complete -- 1..5 unf bea com mas nul
+achieve1 -- current
+achieve2 -- max
+online
+note
+
+    REVIEW
+rating -- 0..4 for 1..5 stars, 8 for no rating
+comments
+
+    MISC
+playing -- now playing, =1 if set, omitted if unset
+wishlist -- wishlisted, =1 if set, omitted if unset
+submit1=Save -- normal save
+submit2=Stealth+Save -- stealth save
+delete1=Delete+Game
+delete2=Stealth+Delete
+
+--]]
