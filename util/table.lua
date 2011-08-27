@@ -36,6 +36,14 @@ function table.map(T, f)
     return R
 end
 
+function table.tolist(T)
+    local L = {}
+    for k,v in pairs(T) do
+        L[#L+1] = v
+    end
+    return L
+end
+
 function table.filter(T, f)
     local R = {}
     
