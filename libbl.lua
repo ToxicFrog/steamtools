@@ -2,6 +2,7 @@ require "socket.http"
 require "util.http"
 require "ltn12"
 require "util.string"
+require "html"
 
 bl = {}
 
@@ -167,7 +168,8 @@ function bl.login(user, pass)
     local body,code,headers = socket.http.request("http://backloggery.com/login.php", post)
     
     if code ~= 302 then
-        err = body:match [[div class="update%-r">([^<]+)]] or "unknown error"
+        err = html.parse(body):Find("div", "class", "update%-r")
+        err = err and err:Content() or "unknown error"
         return nil,err
     end
     
@@ -207,10 +209,10 @@ local function request(self, fields, method, url)
     end
 
     local r,e = socket.http.request(request)
-    socket.sleep(1)
+    socket.sleep(0.2)
     
     if r then
-        return table.concat(response)
+        return html.parse(table.concat(response))
     else
         return nil,e
     end
@@ -255,11 +257,11 @@ function bl:addgame(game)
         return nil,tostring(e)
     end
     
-    if r:match([[<div class="update%-r">(.-)</div>]]) then
-        return nil,r:match([[<div class="update%-r">(.-)</div>]])
+    if r:Find("div", "class", "update%-r") then
+        return nil,r:Find("div", "class", "update%-r"):Content()
     end
 
-    return r:match([[<div class="update%-g">(.-)</div>]]) or true
+    return r:Find("div", "class", "update%-g"):Content()
 end
 
 -- returns true if the user has a game of this name, and false otherwise
@@ -284,23 +286,30 @@ local function getAllGames(self, wishlist, games)
         
         local body = assert(request(self, fields, "GET", "http://backloggery.com/ajax_moregames.php"))
         
-        for type,gamebox in body:gmatch([[<section class="gamebox([^"]*)">(.-)</section>]]) do
-            if type == "" or type == " nowplaying" then
+        for gamebox in body:GFind("section", "class", "gamebox.*") do
+            if gamebox.class == "gamebox" or gamebox.class == "gamebox nowplaying" then
                 local info = {}
-                info.console,info.complete,info.name = gamebox:match("games%.php.-console=([^&]+).-status=(%d+).-<b>(.-)</b>")
+                info.name = gamebox:Find("b"):Content()
+                info.console = gamebox:Find("a", "href", "^games.php").href:match("console=([^&]+)")
+                info.complete = gamebox:Find("a", "href", "^games.php").href:match("status=(%d+)")
                 info.complete = tonumber(info.complete)
-                info.note = gamebox:match([[<div class="gamerow">([^<]+)</div>$]]) or ""
+                info.note = gamebox:Find("div", "class", "gamerow")
+                info.note = info.note and info.note:Content():match("^[^<]+") or ""
                 info.wishlist = wishlist
-                info.playing = type == " nowplaying"
-                info.id = tonumber(gamebox:match([[gameid=(%d+)]]))
+                info.playing = gamebox.class == "gamebox nowplaying"
+                info.id = tonumber(gamebox:Find("a", "href", "^update.php").href:match([[gameid=(%d+)]]))
                 games[info.id] = info
             end
         end
         
-        id,temp_sys,aj_id,total = body:match([[getMoreGames%((%d+),%s*'(.-)',%s*'(%d+)',%s*(%d+)%)]])
+        if body:Find("onclick", "^getMoreGames") then
+            id,temp_sys,aj_id,total = body:Find("onclick", "^getMoreGames").onclick:match([[getMoreGames%((%d+),%s*'(.-)',%s*'(%d+)',%s*(%d+)%)]])
+        else
+            id = nil
+        end
     end
     
-    repeat getMoreGames(wishlist) until true or not id
+    repeat getMoreGames(wishlist) until not id
     
     return games
 end
@@ -354,7 +363,7 @@ function bl.completestring(code)
 end
 
 function bl:deletegame(game)
-    assert(type(game) == "number", 'invalid argument to bl;deletegame')
+    assert(type(game) == "number", 'invalid argument to bl:deletegame')
     
     local fields = {
         user = self.user;

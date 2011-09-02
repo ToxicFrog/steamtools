@@ -3,6 +3,24 @@ package.cpath = package.cpath..";iup/lib?51.so"
 require "iuplua"
 local gui = require "bledit.gui"
 
+local GAMES,COOKIE
+
+bledit = {}
+
+function bledit.games()
+    return GAMES
+end
+
+function bledit.cookie()
+    return COOKIE
+end
+
+function bledit.loadGames()
+    COOKIE._games = nil -- delete cache to force a reload
+    GAMES = COOKIE:games()
+    gui.listGames(GAMES, "_console_str", "name")
+end
+
 function main(...)
     gui.init()
     
@@ -28,9 +46,9 @@ function main(...)
         end
     end
     
+    COOKIE = cookie
     gui.status("Logged in as "..cookie.user)
-    GAMES = cookie:games()
-    gui.listGames(GAMES, "_console_str", "name")
+    bledit.loadGames()
 
     gui.main()
 end

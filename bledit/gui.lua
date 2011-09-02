@@ -4,282 +4,12 @@ require "util.table"
 local gui = {}
 
 --------------------------------------------------------------------------------
--- internal functions used for GUI creation
+-- internal widgets and whatnot
 --------------------------------------------------------------------------------
 
--- create a mockup of an element. Used to create placeholders that will
--- later be replaced with the real thing
-local function mock(name, expand)
-    if expand == true then
-        expand = "YES"
-    elseif expand == false then
-        expand = nil
-    end
-    return iup.frame { iup.label { fgcolor = "255 0 0"; expand = expand; title = '['..name..']' } }
-end
-
--- create a frame with a title, as in frame "foo" { ... }
-local function frame(title)
-    return function(init)
-        init.title = title
-        return iup.frame(init)
-    end
-end
-
--- create a dropdown for selecting a gaming system from the list of systems
--- supported by backloggery
-local function SystemSelector()
-    local bl = require "libbl"
-    
-    local systems = {}
-    
-    for short,long in pairs(bl.platforms) do
-        table.insert(systems, long)
-    end
-    
-    table.sort(systems)
-    systems.dropdown = "YES";
-    
-    return iup.list(systems)
-end
-
--- create a dropdown for selecting a region from the list of regions supported
--- by backloggery
-local function RegionSelector()
-    return iup.list {
-        dropdown = "YES";
-        
-        "Brazil";
-        "China";
-        "Japan";
-        "Korea";
-        "N.Amer";
-        "PAL";
-    }
-end
-
---------------------------------------------------------------------------------
--- internal widget banks
---------------------------------------------------------------------------------
-
--- the set of all editing fields
-local fields = {
-    -- game information
-    title = iup.text { expand = "HORIZONTAL" };
-    compilation = iup.text { expand = "HORIZONTAL" };
-    system = SystemSelector();
-    original_system = SystemSelector();
-    region = RegionSelector();
-    ownership = {
-        iup.toggle { image = "images/own_owned.bmp" };
-        iup.toggle { image = "images/own_ghost.bmp" };
-        iup.toggle { image = "images/own_borrow.bmp" };
-        iup.toggle { image = "images/own_other.bmp" };
-    };
-        
-    
-    -- progress
-    status = {
-        iup.toggle { image = "images/unfinished.bmp" };
-        iup.toggle { image = "images/beaten.bmp" };
-        iup.toggle { image = "images/completed.bmp" };
-        iup.toggle { image = "images/mastered.bmp" };
-        iup.toggle { image = "images/null.bmp" };
-    };
-    achievements = iup.text { size = "30x"; spin = "YES"; spinmax = 999; };
-    max_achievements = iup.text { size = "30x"; spin = "YES"; spinmax = 999; };
-    notes = iup.text { expand = "HORIZONTAL" };
-    online_info = iup.text { expand = "HORIZONTAL" };
-    
-    -- review
-    rating = {
-        iup.toggle { image = "images/5_5stars.bmp" };
-        iup.toggle { image = "images/4_5stars.bmp" };
-        iup.toggle { image = "images/3_5stars.bmp" };
-        iup.toggle { image = "images/2_5stars.bmp" };
-        iup.toggle { image = "images/1_5stars.bmp" };
-        iup.toggle { title = "No Rating" };
-        default = 6;
-    };
-    comments = iup.text { expand = "YES"; multiline = "YES" };
-}
-
--- the set of all user controls not used for editing game data, as well as
--- feedback controls
-local controls = {
-    status = iup.label { title = "Not Logged In" };
-    new = iup.button { title = "New"; padding = "4x"; active = "NO" };
-    edit = iup.button { title = "Edit"; padding = "4x"; active = "NO" };
-    delete = iup.button { title = "Delete"; padding = "4x" };
-    save = iup.button { title = "Save"; padding = "4x"; active = "NO" };
-    gamelist = iup.tree {
-        expand = "YES";
-        size = "200x";
-        maxsize = "200x";
-        markmode = "MULTIPLE";
-    };
-};
-
--- the main window
-local win = iup.dialog {
-    title = "Backloggery Editor";
-    fontstyle = "bold";
-    active = "NO";
-    --size = "QUARTERxQUARTER";
-    
-    iup.hbox {
-        iup.vbox { -- contains game list, sort buttons
-            fontstyle = "";
-            expandchildren = "YES";
-
-            controls.gamelist;
-            mock("Sort By");
-            mock("Group By");
-        };
-        iup.vbox { -- contains edit controls
-            iup.vbox {
-                name = "editpane";
-                active = "NO";
-                iup.frame { -- general game information
-                    title = "Game Information";
-                    
-                    iup.vbox {
-                        fontstyle = "";
-                        
-                        frame "Title" {
-                            fields.title;
-                        };
-                        frame "Compilation" {
-                            fields.compilation;
-                        };
-                        iup.hbox {
-                            frame "System" {
-                                fields.system;
-                            };
-                            frame "Original System" {
-                                fields.original_system;
-                            };
-                            frame "Region" {
-                                fields.region;
-                            };
-                        };
-                        frame "Ownership" {
-                            iup.radio{
-                                iup.hbox {
-                                    alignment = "ACENTER";
-                                    
-                                    fields.ownership[1];
-                                    iup.label { title = "Owned" };
-                                    iup.fill { size = 20 };
-                                    fields.ownership[2];
-                                    iup.label { title = "Formerly Owned" };
-                                    iup.fill { size = 20 };
-                                    fields.ownership[3];
-                                    iup.label { title = "Borrowed/Rented" };
-                                    iup.fill { size = 20 };
-                                    fields.ownership[4];
-                                    iup.label { title = "Other" };
-                                    iup.fill {};
-                                };
-                            };
-                        };
-                    };
-                };
-                
-                iup.frame { -- status and progress controls
-                    title = "Progress";
-                    
-                    iup.vbox {
-                        fontstyle = "";
-                        
-                        iup.frame {
-                            title = "Status";
-                            iup.radio{
-                                iup.hbox {
-                                    alignment = "ACENTER";
-                                    
-                                    fields.status[1];
-                                    iup.label { title = "Unfinished" };
-                                    iup.fill { size = 20 };
-                                    fields.status[2];
-                                    iup.label { title = "Beaten" };
-                                    iup.fill { size = 20 };
-                                    fields.status[3];
-                                    iup.label { title = "Completed" };
-                                    iup.fill { size = 20 };
-                                    fields.status[4];
-                                    iup.label { title = "Mastered" };
-                                    iup.fill { size = 20 };
-                                    fields.status[5];
-                                    iup.label { title = "Null" };
-                                    iup.fill {};
-                                };
-                            };
-                        };
-                        
-                        iup.hbox {
-                            iup.frame {
-                                title = "Achievements";
-                                iup.hbox {
-                                    fields.achievements;
-                                    iup.label { title = " out of " };
-                                    fields.max_achievements;
-                                };
-                            };
-                            iup.frame {
-                                title = "Online Info";
-    
-                                fields.online_info;
-                            };
-                        };
-                        
-                        iup.frame {
-                            title = "Notes";
-                            fields.notes;
-                        };
-                    };
-                };
-                
-                iup.frame { -- rating and review controls
-                    title = "Review";
-                    iup.hbox {
-                        fontstyle = "";
-                        iup.frame {
-                            title = "Rating";
-                            iup.radio {
-                                iup.vbox {
-                                    fontstyle = "";
-                                    expandchildren = "YES";
-                                    
-                                    unpack(fields.rating);
-                                };
-                            };
-                        };
-                        iup.frame {
-                            title = "Comments";
-                            
-                            fields.comments;
-                        };
-                    };
-                };
-            };
-            iup.hbox { -- command buttons
-                fontstyle = "";
-                alignment = "ACENTER";
-                
-                iup.fill {};
-                controls.name;
-                iup.fill {};
-                controls.new;
-                controls.edit;
-                controls.delete;
-                iup.fill {};
-                controls.save;
-                iup.fill {};
-            };
-        };
-    };
-}
+local fields = require "bledit.fields"
+local controls = require "bledit.controls"
+local win = require "bledit.window"
 
 --------------------------------------------------------------------------------
 -- callbacks
@@ -301,20 +31,92 @@ function controls.delete:action()
     
     -- redisplay tree
     -- where do we get the master game list from?
-    gui.listGames(GAMES, "_console_str", "name")
+    gui.listGames(bledit.games(), "_console_str", "name")
     
     -- restore list of selected nodes
     controls.gamelist.markednodes = selected
 end
 
+function controls.edit:action()
+    -- get list of selected games
+    local selected = controls.gamelist.markednodes
+    
+    -- mark them for edit
+    for i=1,#selected do
+        if selected:sub(i,i) == "+" then
+            local game = iup.TreeGetUserId(controls.gamelist, i-1)
+            if game then
+                game._dirty = true
+            end
+        end
+    end
+    
+    -- redisplay tree
+    gui.listGames(bledit.games(), "_console_str", "name")
+    
+    -- restore list of selected nodes
+    controls.gamelist.markednodes = selected
+    
+    gui.loadFields(fields.game)
+end
+
+function controls.save:action()
+    local changed,deleted,unchanged = 0,0,0
+    
+    table.foreach(bledit.games(), function(_, game)
+        if game._delete then
+            deleted = deleted+1
+        elseif game._dirty then
+            changed = changed+1
+        else
+            unchanged = unchanged+1
+        end
+    end)
+    
+    if changed + deleted == 0 then
+        iup.Alarm("Nothing to save!", "You must edit or delete some games before you can save.", "OK")
+        return
+    end
+    
+    if 1 ~= iup.Alarm("Save changes?",
+        "About to make the following changes to your Backloggery account:\n"
+        .."  "..deleted.." games will be deleted entirely\n"
+        .."  "..changed.." games will have their information edited\n"
+        .."  "..unchanged.." games will be left untouched.\nProceed?",
+        "OK", "Cancel")
+    then
+        return
+    end
+    
+    table.foreach(bledit.games(), function(_, game)
+        if game._delete then
+            print("delete", game.name, bledit.cookie():deletegame(game.id))
+            
+        elseif game._dirty then
+            print("edit", game.name)
+        end
+    end)
+    
+    bledit.loadGames()
+end
+
 function controls.gamelist:selection_cb(id, status)
     local game = iup.TreeGetUserId(controls.gamelist, id)
     if not game then
-        print("!!!!", id)
+        -- there's no game associated with this id
     elseif status == 1 then
+        -- we selected a new game - load it into the fields
+        -- if we were editing another game, save that one first
+        if fields.game and fields.game._dirty then
+            gui.saveFields(fields.game)
+        end
+        
         gui.loadFields(game)
+        controls.nrof_selected = controls.nrof_selected +1
     else
-        gui.saveFields(game)
+        -- we deselected a game - do nothing
+        controls.nrof_selected = controls.nrof_selected -1
+        gui.editable(false)
     end
 end
 
@@ -328,7 +130,7 @@ function gui.init()
 end
 
 function gui.warn(title, message)
-    iup.Alarm(title, message)
+    iup.Alarm(title, message, "OK")
 end
 
 function gui.getLogin(USER,PASS)
@@ -388,6 +190,11 @@ function gui.listGames(allgames, group_by, sort_by)
     end
 end
 
+function gui.editable(on)
+    controls.editpane.active = on and "YES" or "NO"
+end
+
+
 function iup:GetType()
     local t = tostring(self):match("IUP%((.*)%)")
     if not t then
@@ -396,6 +203,32 @@ function iup:GetType()
         return "iup_"..t
     end
 end
+
+-- mapping between GUI widgets and game info struct fields
+local fieldmap = {
+    -- information
+    name = fields.title;
+    comp = fields.compilation;
+    _console_str = fields.system;
+    _orig_console_str = fields.original_system;
+    _region_str = fields.region;
+    own = fields.ownership; -- 1..4 -> owned, formerly, borrowed, other
+    
+    -- progress
+    complete = fields.status; -- 1..5 UBCMN
+    achieve1 = fields.achievements;
+    achieve2 = fields.max_achievements;
+    online = fields.online_info;
+    note = fields.notes;
+    
+    -- review
+    rating = fields.rating; -- 0..4 or 8
+    comments = fields.comments;
+    
+    -- misc
+    playing = fields.now_playing;
+    wishlist = fields.wishlist;
+}
 
 -- load all of the information for game into the editing fields
 function gui.loadFields(game)
@@ -419,41 +252,21 @@ function gui.loadFields(game)
     end
     
     function set:table(value)
+        if self.writemap then
+            value = self.writemap[value] or value
+        end
+        
         if not value then
             table.map(self, function(w) w.value = "OFF" end)
         elseif self[value] then
             self[value].value = "ON"
-        elseif self.default then
-            self[self.default].value = "ON"
+        else
+            gui.warn("Display Game", "Couldn't set table:\n"..debug.traceback())
         end
     end
     
-    local fields = {
-        -- information
-        name = fields.title;
-        comp = fields.compilation;
-        _console_str = fields.system;
-        _orig_console_str = fields.original_system;
-        _region_str = fields.region;
-        own = fields.ownership; -- 1..4 -> owned, formerly, borrowed, other
-        
-        -- progress
-        complete = fields.status; -- 1..5 UBCMN
-        achieve1 = fields.achievements;
-        achieve2 = fields.max_achievements;
-        online = fields.online_info;
-        note = fields.notes;
-        
-        -- review
-        rating = fields.rating; -- 0..4 or 8
-        comments = fields.comments;
-        
-        -- misc
-        playing = fields.now_playing;
-        wishlist = fields.wishlist;
-    }
     
-    for field,widget in pairs(fields) do
+    for field,widget in pairs(fieldmap) do
         if set[iup.GetType(widget)] then
             set[iup.GetType(widget)](widget, game[field])
         else
@@ -461,15 +274,45 @@ function gui.loadFields(game)
         end
     end
     
-    if game._dirty then
-        controls.editpane.active = "YES"
-    else
-        controls.editpane.active = "NO"
-    end
+    fields.game = game
+    
+    gui.editable(game._dirty)
 end
 
 function gui.saveFields(game)
-    print("SAVE", game.name, fields.title.value)
+    local get = {}
+    
+    function get:iup_text()
+        return self.value
+    end
+    
+    function get:iup_list()
+        if self.value == 0 then
+            return ""
+        else
+            return self[self.value]
+        end
+    end
+    
+    function get:table()
+        for i,widget in ipairs(self) do
+            if widget.value == "ON" then
+                if self.readmap then
+                    i = self.readmap[i] or i
+                end
+                return i
+            end
+        end
+        return nil
+    end
+    
+    for field,widget in pairs(fieldmap) do
+        if get[iup.GetType(widget)] then
+            game[field] = get[iup.GetType(widget)](widget)
+        else
+            print("Warning: couldn't read field", field, game[field], iup.GetType(widget))
+        end
+    end
 end
 
 return gui
