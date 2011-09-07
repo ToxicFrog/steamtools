@@ -46,6 +46,7 @@ function controls.edit:action()
         if selected:sub(i,i) == "+" then
             local game = iup.TreeGetUserId(controls.gamelist, i-1)
             if game then
+                bledit.cookie():details(game.id)
                 game._dirty = true
             end
         end
@@ -55,6 +56,7 @@ function controls.edit:action()
     gui.listGames(bledit.games(), "_console_str", "name")
     
     -- restore list of selected nodes
+    controls.gamelist.value = selected:find("+") and selected:find("+")-1 or "ROOT"
     controls.gamelist.markednodes = selected
     
     gui.loadFields(fields.game)
@@ -222,7 +224,7 @@ local fieldmap = {
     note = fields.notes;
     
     -- review
-    rating = fields.rating; -- 0..4 or 8
+    _stars = fields.rating;
     comments = fields.comments;
     
     -- misc

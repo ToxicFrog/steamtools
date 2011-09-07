@@ -40,8 +40,14 @@ end
 function Tag:Find(tag, key, value)
     if tag and key and not value then return self:Find(false, tag, key) end
     
-    if (not key or self[key] and self[key]:match(value))
-        and (not tag or self.TAG:match(tag))
+    local function matches(x, y)
+        if type(x) == "string" and type(y) == "string" then return x:match(y)
+        else return x == y
+        end
+    end
+            
+    if (not key or self[key] and matches(self[key], value))
+        and (not tag or matches(self.TAG, tag))
     then
         return self
     end
@@ -75,7 +81,17 @@ function Tag:GFind(tag, key, value)
     return coroutine.wrap(iter), self
 end
 
+function Tag:FindAll(...)
+    local results = {}
+    
+    for tag in self:GFind(...) do
+        table.insert(results, tag)
+    end
+    return results
+end
+
 function html.parse(buf, stack)
+    assert(type(buf) == "string", tostring(buf))
     stack = stack or {}
     
     local function lex_tag(tag, buf)
@@ -90,10 +106,13 @@ function html.parse(buf, stack)
         tag.TAG = name
         attrs:gsub('(%S+)=(%b"")', function(k,v)
             tag[k:lower()] = v:sub(2,-2)
+            return ""
         end):gsub('(%S+)=(%S+)', function(k,v)
             tag[k:lower()] = v
+            return ""
         end):gsub('%S+', function(k)
             tag[k:lower()] = true
+            return ""
         end)
 
         return type,tag,buf

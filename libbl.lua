@@ -208,6 +208,7 @@ local function request(self, fields, method, url)
         request.url = url.."?"..body
     end
 
+    print("request", request.url)
     local r,e = socket.http.request(request)
     socket.sleep(0.2)
     
@@ -291,19 +292,42 @@ local function getAllGames(self, wishlist, games)
                 local info = {}
                 info.name = gamebox:Find("b"):Content()
                 info.console = gamebox:Find("a", "href", "^games.php").href:match("console=([^&]+)")
+                info.id = tonumber(gamebox:Find("a", "href", "^update.php").href:match([[gameid=(%d+)]]))
+
                 info.complete = gamebox:Find("a", "href", "^games.php").href:match("status=(%d+)")
                 info.complete = tonumber(info.complete)
-                info.note = gamebox:Find("div", "class", "gamerow")
-                info.note = info.note and info.note:Content():match("^[^<]+") or ""
+
+                info.note = gamebox:FindAll("div", "class", "gamerow")[2]
+                info.note = info.note and info.note:Content()
+
+                info.rating = gamebox:Find("img", "src", "stars%.gif$")
+                info.rating = info.rating and (tonumber(info.rating.src:match("(%d)_5stars")) - 1) or 8 -- 8 == no rating
+                info._stars = info.rating == 8 and 0 or (info.rating +1)
+                
+                info.own = gamebox:Find("img", "src", "own_")
+                if info.own then
+                    if info.own.src:match("own_ghost") then
+                        info.own = 2
+                    elseif info.own.src:match("own_borrow") then
+                        info.own = 3
+                    elseif info.own.src:match("own_other") then
+                        info.own = 4
+                    else
+                        info.own = 1
+                    end
+                else
+                    info.own = 1
+                end
+                
                 info.wishlist = wishlist
                 info.playing = gamebox.class == "gamebox nowplaying"
-                info.id = tonumber(gamebox:Find("a", "href", "^update.php").href:match([[gameid=(%d+)]]))
+
                 games[info.id] = info
             end
         end
         
-        if body:Find("onclick", "^getMoreGames") then
-            id,temp_sys,aj_id,total = body:Find("onclick", "^getMoreGames").onclick:match([[getMoreGames%((%d+),%s*'(.-)',%s*'(%d+)',%s*(%d+)%)]])
+        if body:Find("input", "value", "Show more games") then
+            id,temp_sys,aj_id,total = body:Find("input", "value", "Show more games").onclick:match([[getMoreGames%((%d+),%s*'(.-)',%s*'(%d+)',%s*(%d+)%)]])
         else
             id = nil
         end
@@ -373,9 +397,44 @@ function bl:deletegame(game)
     return request(self, fields, "POST", "http://backloggery.com/update.php?user=%s&gameid=%d" % { self.user, game })
 end
 
+function bl:details(game)
+    assert(type(game) == "number", 'invalid argument to bl:details')
+    
+    game = assert(self:games()[game], 'no game with id '..game)
+    
+    local body = assert(request(self, { user = self.user, gameid = game.id }, "GET", "http://backloggery.com/update.php"))
+    
+    local function set(key, value)
+        if not game[key] then
+            game[key] = value
+        end
+    end
+    
+    -- name, console, complete, note, wishlist, and playing were already
+    -- filled in by the initial loading of the game list
+    -- FIXME own should be as well
+    
+    -- this leaves: comp, orig_console, region
+    -- achieve1, achieve2, online
+    -- rating, comments
+    
+    print(body:Show())
+    
+    set("comp", body:Find("input", "name", "comp").value)
+    set("orig_console", body:Find("select", "name", "orig_console"):Find("option", "selected", true).value)
+    set("region", body:Find("select", "name", "region"):Find("option", "selected", true).value)
+    set("achieve1", tonumber(body:Find("input", "name", "achieve1").value) or "")
+    set("achieve2", tonumber(body:Find("input", "name", "achieve2").value) or "")
+    set("online", body:Find("input", "name", "online").value)
+    set("comments", body:Find("textarea", "name", "comments"):Content())
+    
+end
+
 return bl
 
 --[[
+http://backloggery.com/update.php?user=ToxicFrog&gameid=4183025
+
 backloggery game editor form field names
 
     INFORMATION

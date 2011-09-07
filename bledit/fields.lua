@@ -72,14 +72,10 @@ local fields = {
         iup.toggle { image = "images/1_5stars.bmp" };
         iup.toggle { title = "No Rating" };
         
-        readmap = {
-            [6] = 8;
-        };
-        writemap = {
-            [8] = 6;
-        };
+        readmap = { 5, 4, 3, 2, 1, 0 };
+        writemap = { [0] = 6, 5, 4, 3, 2, 1 };
     };
-    comments = iup.text { expand = "YES"; multiline = "YES" };
+    comments = iup.text { expand = "YES"; multiline = "YES"; wordwrap = "YES" };
 }
 
 return fields
