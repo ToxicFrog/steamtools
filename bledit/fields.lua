@@ -41,7 +41,7 @@ local function toggle(text, image, both)
     elseif LINUX then
         return iup.toggle { image = image; }
     else
-        return iup.toggle { text = text; }
+        return iup.toggle { title = text; }
     end
 end
 
