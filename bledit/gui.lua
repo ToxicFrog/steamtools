@@ -65,6 +65,10 @@ end
 function controls.save:action()
     local changed,deleted,unchanged = 0,0,0
     
+    if fields.game and fields.game._dirty then
+        gui.saveFields(fields.game)
+    end
+
     table.foreach(bledit.games(), function(_, game)
         if game._delete then
             deleted = deleted+1
@@ -95,11 +99,13 @@ function controls.save:action()
             print("delete", game.name, bledit.cookie():deletegame(game.id))
             
         elseif game._dirty then
+            game._dirty = nil
             print("edit", game.name)
+            bledit.cookie():editgame(game.id)
         end
     end)
     
-    bledit.loadGames()
+    gui.listGames(bledit.games(), "_console_str", "name")
 end
 
 function controls.gamelist:selection_cb(id, status)
