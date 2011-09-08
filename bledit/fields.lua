@@ -30,6 +30,21 @@ local function RegionSelector()
     }
 end
 
+local function toggle(text, image, both)
+    if LINUX and both then
+        return iup.hbox {
+            alignment = "ACENTER";
+            
+            iup.toggle { image = image; };
+            iup.label { title = text; };
+        };
+    elseif LINUX then
+        return iup.toggle { image = image; }
+    else
+        return iup.toggle { text = text; }
+    end
+end
+
 --------------------------------------------------------------------------------
 -- internal widget banks
 --------------------------------------------------------------------------------
@@ -43,19 +58,19 @@ local fields = {
     original_system = SystemSelector();
     region = RegionSelector();
     ownership = {
-        iup.toggle { image = LINUX and "images/own_owned.bmp" };
-        iup.toggle { image = LINUX and "images/own_ghost.bmp" };
-        iup.toggle { image = LINUX and "images/own_borrow.bmp" };
-        iup.toggle { image = LINUX and "images/own_other.bmp" };
+        toggle("Owned", "images/own_owned.bmp", true);
+        toggle("Formerly Owned", "images/own_ghost.bmp", true);
+        toggle("Borrowed/Rented", "images/own_borrow.bmp", true);
+        toggle("Other", "images/own_other.bmp", true);
     };
     
     -- progress
     status = {
-        iup.toggle { image = LINUX and "images/unfinished.bmp" };
-        iup.toggle { image = LINUX and "images/beaten.bmp" };
-        iup.toggle { image = LINUX and "images/completed.bmp" };
-        iup.toggle { image = LINUX and "images/mastered.bmp" };
-        iup.toggle { image = LINUX and "images/null.bmp" };
+        toggle("Unfinished", "images/unfinished.bmp", true);
+        toggle("Beaten", "images/beaten.bmp", true);
+        toggle("Completed", "images/completed.bmp", true);
+        toggle("Mastered", "images/mastered.bmp", true);
+        toggle("Null", "images/null.bmp", true);
     };
     achievements = iup.text { size = "30x"; spin = "YES"; spinmax = 999; };
     max_achievements = iup.text { size = "30x"; spin = "YES"; spinmax = 999; };
@@ -64,11 +79,11 @@ local fields = {
     
     -- review
     rating = {
-        iup.toggle { image = LINUX and "images/5_5stars.bmp"; title = LINUX and nil or "5 stars" };
-        iup.toggle { image = LINUX and "images/4_5stars.bmp"; title = LINUX and nil or "4 stars" };
-        iup.toggle { image = LINUX and "images/3_5stars.bmp"; title = LINUX and nil or "3 stars" };
-        iup.toggle { image = LINUX and "images/2_5stars.bmp"; title = LINUX and nil or "2 stars" };
-        iup.toggle { image = LINUX and "images/1_5stars.bmp"; title = LINUX and nil or "1 stars" };
+        toggle("5 Stars", "images/5_5stars.bmp");
+        toggle("4 Stars", "images/4_5stars.bmp");
+        toggle("3 Stars", "images/3_5stars.bmp");
+        toggle("2 Stars", "images/2_5stars.bmp");
+        toggle("1 Star", "images/1_5stars.bmp");
         iup.toggle { title = "No Rating" };
         
         readmap = { 5, 4, 3, 2, 1, 0 };

@@ -69,16 +69,12 @@ local win = iup.dialog {
                                     alignment = "ACENTER";
                                     
                                     fields.ownership[1];
-                                    iup.label { title = "Owned" };
                                     iup.fill { size = 20 };
                                     fields.ownership[2];
-                                    iup.label { title = "Formerly Owned" };
                                     iup.fill { size = 20 };
                                     fields.ownership[3];
-                                    iup.label { title = "Borrowed/Rented" };
                                     iup.fill { size = 20 };
                                     fields.ownership[4];
-                                    iup.label { title = "Other" };
                                     iup.fill {};
                                 };
                             };
@@ -99,19 +95,14 @@ local win = iup.dialog {
                                     alignment = "ACENTER";
                                     
                                     fields.status[1];
-                                    iup.label { title = "Unfinished" };
                                     iup.fill { size = 20 };
                                     fields.status[2];
-                                    iup.label { title = "Beaten" };
                                     iup.fill { size = 20 };
                                     fields.status[3];
-                                    iup.label { title = "Completed" };
                                     iup.fill { size = 20 };
                                     fields.status[4];
-                                    iup.label { title = "Mastered" };
                                     iup.fill { size = 20 };
                                     fields.status[5];
-                                    iup.label { title = "Null" };
                                     iup.fill {};
                                 };
                             };
