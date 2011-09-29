@@ -82,7 +82,7 @@ function main(source)
     end
     
     io.printf(" done.\nLoading Backloggery game lists:"); io.flush()
-    io.printf(" games"); io.flush(); cookie:games()
+    io.printf(" games+wishlist"); io.flush(); cookie:games()
     io.printf(" done.\n\n")
     
     io.printf("Filtering games:"); io.flush()
@@ -90,7 +90,7 @@ function main(source)
     local count = 0
     for _,game in pairs(steam:games()) do
         count = count+1
-        if not cookie:hasgame(game.name) and not ignored(game.name) then
+        if not cookie:games("name")[game.name] and not ignored(game.name) then
             games[#games+1] = {
                 name = game.name;
                 status = "unfinished";
