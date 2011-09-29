@@ -218,7 +218,6 @@ local function request(self, fields, method, url)
         request.url = url.."?"..body
     end
 
-    print("request", request.url)
     local r,e = socket.http.request(request)
     socket.sleep(0.2)
     
@@ -469,15 +468,8 @@ function bl:editgame(game)
     game.complete = bl.completecode(game._complete_str)
     game.submit2 = "Stealth Save"
     
-    print("EDIT")
-    for k,v in pairs(game) do
-        print("", k, v)
-    end
-    print()
-        
     -- create request
     local r,e = request(self, game, "POST", "http://backloggery.com/update.php?user="..self.user.."&gameid="..game.id)
-    print(r:Show(),e)
     
     -- update internal structures
     self:games()[game.id] = game
