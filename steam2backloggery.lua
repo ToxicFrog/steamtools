@@ -1,4 +1,4 @@
-function main(...)
+function main(source)
     require "libbl"
     require "libsteam"
     require "util.io"
@@ -83,7 +83,6 @@ function main(...)
     
     io.printf(" done.\nLoading Backloggery game lists:"); io.flush()
     io.printf(" games"); io.flush(); cookie:games()
-    io.printf(" wishlist"); io.flush(); cookie:wishlist()
     io.printf(" done.\n\n")
     
     io.printf("Filtering games:"); io.flush()
@@ -116,6 +115,11 @@ function main(...)
         return 0
     end
     
+    local platform = CONSOLE
+    while not bl.platforms[platform] do
+        platform = io.prompt("Enter a Backloggery category (recommended: PC, PCDL, or Steam): ")
+    end
+    
     io.output("backloggery.txt")
     io.write [[
 # This is a list of all of the games steam2backloggery is going to add to your
@@ -135,7 +139,7 @@ function main(...)
 #
 ]]
     for _,game in ipairs(games) do
-        io.printf("%-16s%s\n", game.status, game.name)
+        io.printf("%-8s%-16s%s\n", platform, game.status, game.name)
     end
     io.close()
     
@@ -147,17 +151,12 @@ function main(...)
     end
     io.printf("done.\n\n")
     
-    local platform = CONSOLE
-    while not bl.platforms[platform] do
-        platform = io.prompt("Enter a Backloggery category (recommended: PC, PCDL, or Steam): ")
-    end
-    
     -- now, we read the contents of the edited file so that we can upload the games
     -- to backloggery.
     io.printf("\nUpdating your Backloggery.\n")
     for line in io.lines("backloggery.txt") do
-        local status,name = line:match("^(%w+)%s+(.*)")
-        if status and name then
+        local platform,status,name = line:match("^(%w+)%s+(%w+)%s+(.+)")
+        if platform and status and name then
             local wishlist
             if status == "wishlist" then
                 status = "unfinished"
@@ -166,6 +165,8 @@ function main(...)
             
             if not bl.completecode(status) then
                 io.eprintf("Warning: skipping game '%s': unknown status '%s'\n", name, status)
+            elseif not bl.platforms[platform] then
+                io.eprintf("Warning: skipping game '%s': platform '%s' not recognized by backloggery\n", name, platform)
             else
                 local r,e = cookie:addgame {
                     name = name:trim();
@@ -186,4 +187,4 @@ function main(...)
     os.remove("backloggery.txt")
 end
 
-require "app"
+require "app"; main(...)
