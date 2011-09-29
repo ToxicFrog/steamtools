@@ -186,13 +186,16 @@ function gui.listGames(allgames, group_by, sort_by)
     
     controls.gamelist.delnode = "ALL"
     
+    --local branches = { [games[1][group_by]] = true }
+    --controls.gamelist.addbranch = games[1][group_by]
     local branches = {}
+    
     for i,game in ipairs(games) do
         if not branches[game[group_by]] then
-            branches[game[group_by]] = true
-            controls.gamelist.addbranch = game[group_by]
+            controls.gamelist.insertbranch = game[group_by]
+            branches[game[group_by]] = controls.gamelist.lastaddnode
         end
-        controls.gamelist.addleaf0 = game.name
+        controls.gamelist["addleaf"..branches[game[group_by]]] = game.name
         controls.gamelist["image"..controls.gamelist.lastaddnode] = getNodeImage(game)
         iup.TreeSetUserId(controls.gamelist, controls.gamelist.lastaddnode, game)
     end
