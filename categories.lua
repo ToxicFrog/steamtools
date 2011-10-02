@@ -1,8 +1,10 @@
 function initlibs()
     require "lfs"
     require "util.io"
-    require "steamlib"
+    require "libsteam"
     
+    -- like lfs.dir, but returns an iterator over all directory entries that
+    -- don't start with .
     function lfs.dirdot(path)
         local iter = lfs.dir(path)
         return function()
@@ -14,182 +16,118 @@ function initlibs()
         end
     end
     
+    -- "sanitizes" a path by replacing characters windows doesn't understand
+    -- with _
     function lfs.sanitize(path)
         return (path:gsub([=[[/\:*?"<>|]]=], "_"))
     end
 end
 
-function find_user()
-    -- examine Steam log file to figure out who we should be reading the game
-    -- list for
-    io.printf("Reading log to find last logged in user...\n")
-    
-    if not lfs.attributes("../steam.log") then
-        io.eprintf("Couldn't find ../steam.log - make sure that you installed this program\nin the right place!")
-        return nil
-    end
-    
-    local user = {}
-    for line in io.lines("../steam.log") do
-        user.name = line:match("CreateSession%(([^,]+)") or user.name
-        user.id = line:match("for ([0-9:]+)%s*$") or user.id
-    end
-    
-    if not (user.name and user.id) then
-        return nil
-    end
-
-    user.X,user.Y,user.Z = user.id:match("(%d+):(%d+):(%d+)")
-    user.dir = lfs.sanitize(user.name)
-    
-    return user
-end
-
-local function addgame(id, name, category)
+local function addgame(game)
     local r,e
-    name = lfs.sanitize(name)
+    local name = lfs.sanitize(game.name)
+    local category = game.category and lfs.sanitize(game.category) or nil
     
     if category then
-        if not lfs.attributes(lfs.sanitize(category)) then
-            lfs.mkdir(lfs.sanitize(category))
-            io.writefile(lfs.sanitize(category).."/category.txt", category)
+        if not lfs.attributes(category) then
+            lfs.mkdir(category)
+            io.writefile(category.."/category.txt", game.category)
         end
-        category = lfs.sanitize(category)
         
-        r,e = io.writefile(category.."/"..name, id)
+        r,e = io.writefile(category.."/"..name, tostring(game.appid))
     else
-        r,e = io.writefile(name, id)
+        r,e = io.writefile(name, tostring(game.appid))
     end
+    
     if not r then
         io.eprintf("Error creating file for %s%s: %s\n", name, category and " in "..category, e) 
     end
 end
 
-local function apply_user_categories(games, categories)
-    local function categorize(game, category)
+local function apply_user_categories(steam)
+    local function categorize(name, category)
         -- determine appID of game
-        game = lfs.sanitize(game)
-        local id = io.readfile((category and category.."/" or "")..game)
+        name = lfs.sanitize(name)
+        local id = tonumber(io.readfile((category and category.."/" or "")..name))
+        
+        -- determine real name of category, if it got munged by the filesystem
         if category then
             category = (io.readfile(category.."/category.txt") or category):trim()
         end
 
-        -- update game tags
-        if not categories[id] then
-            categories[id] = {}
-        end
-        
-        if (categories[id].tags or {})["0"] == "favorite" then
-            categories[id].tags = {
-                ["0"] = "favorite";
-                ["1"] = category;
-            }
-        else
-            categories[id].tags = {
-                ["0"] = category;
-            }
-        end
-        
-        games[id] = nil
+        -- update game
+        steam:games("appid")[id].category = category
     end
 
-    for category in lfs.dirdot(".") do
-        -- is this actually a category?
-        if lfs.attributes(category).mode == "directory" then
+    for item in lfs.dirdot(".") do
+        -- is this a category directory?
+        if lfs.attributes(item).mode == "directory" then
             -- if so, process all the games in it
-            for game in lfs.dirdot(category) do
+            for game in lfs.dirdot(item) do
                 if game ~= "category.txt" then -- reserved to store unmunged category name
-                    categorize(game, category)
+                    categorize(game, item)
                 end
             end
         else
             -- otherwise, it's a game with no category
-            categorize(category, nil)
+            categorize(item, nil)
         end
     end
 end
 
-local function add_new_games(games, categories)
-    for id,name in pairs(games) do
-        local category
-        if categories[id] and categories[id].tags then
-            local i = 0
-            while categories[id].tags[tostring(i)] do
-                category = categories[id].tags[tostring(i)]
-                i = i+1
-            end
-            if category == "favorite" then category = nil end
-        end
-
-        addgame(id, name, category)
+local function add_new_games(steam)
+    for _,game in ipairs(steam:games()) do
+        addgame(game)
     end
 end
 
 function main(...)
     initlibs()
     
-    local user = find_user()
-    if not user then
-        io.eprintf("Couldn't determine name and ID of last logged in user.\n")
-        io.eprintf("Please log in to Steam at least once before using this program.\n")
+    -- initialize Steam
+    local path = (...) or io.prompt("Steam location (drag-and drop steam.exe): ")
+    
+    local steam,err = steam.open(path:gsub('^"(.*)"$', '%1'))
+    if not steam then
+        io.eprintf("Couldn't read Steam directory: %s\n", err)
         return 1
     end
     
-    io.printf("Selected user %s with id STEAM_%s\n", user.name, user.id)
+    io.printf("Found Steam account %s\n\n", tostring(steam))
 
     -- now the fun begins. We need to do the following:
     --  read the user's master game list
     --  read the sharedconfig.vdf
     --  read the contents of the category dir, if any
-    --  foreach game in the category dir, categorize it appropriately
+    --  foreach game in the category dir, update its category info in steam
     --  foreach game the user owns not in the category dir, create it in the category dir, categorized if necessary
     --  write out the updated VDF
     
-    io.printf("Reading Steam's category information...\n")
-    local sharedconfig = assert(steam.loadVDF("../userdata/"..(user.Z*2 + user.Y).."/7/remote/sharedconfig.vdf"))
-    local categories
-    if sharedconfig.UserRoamingConfigStore then
-        categories = sharedconfig.UserRoamingConfigStore.Software.Valve.Steam.apps
-    elseif sharedconfig.UserLocalConfigStore then
-        categories = sharedconfig.UserLocalConfigStore.Software.Valve.Steam.apps
-    else
-        io.eprintf("Couldn't find cloud (UserRoamingConfigStore) or local (UserLocalConfigStore)\ncategory information, bailing...\n")
-        return 1;
-    end
-        
-    io.printf("Loading %s's game list...\n", user.name)
-    local games = steam.games(user.X, user.Y, user.Z)
+    -- load master game list and steam category information
+    io.printf("Loading Steam game list:"); io.flush()
+    assert(steam:games())
+    io.printf(" done\n")
     
-    if not lfs.attributes(user.dir) then
-        lfs.mkdir(user.dir)
-    end
+    steam:load_categories()
     
-    lfs.chdir(user.dir)
+    if not lfs.attributes(lfs.sanitize(steam.name)) then
+        lfs.mkdir(lfs.sanitize(steam.name))
+    end
+    lfs.chdir(lfs.sanitize(steam.name))
 
     io.printf("Scanning categorization directory, and updating Steam as necessary...\n")
-    apply_user_categories(games, categories)
-    
+    apply_user_categories(steam)
+
     io.printf("Adding new games to categorization directory...\n")
-    add_new_games(games, categories)
-    
-    lfs.chdir("../../userdata/"..(user.Z*2 + user.Y).."/7/remote/")
-    
-    io.printf("Backing up old Steam category information...\n")
-    io.writefile("sharedconfig.vdf.backup", io.readfile("sharedconfig.vdf"))
-    
+    add_new_games(steam)
+
     io.printf("Writing new Steam category information...\n")
-    steam.saveVDF("sharedconfig.vdf", sharedconfig)
+    steam:save_categories()
     
     io.printf("Done!\n")
     
     return 0
 end
 
-local r,e = xpcall(main, debug.traceback)
-if not r then
-    io.eprintf("Error in execution: %s\n", e)
-end
-
-io.printf("\n\nPress enter to quit...")
-io.read()
-
+require "app"
+return main(...)
