@@ -1,3 +1,4 @@
+require "util.io"
 require "util.misc"
 
 local _main = main
