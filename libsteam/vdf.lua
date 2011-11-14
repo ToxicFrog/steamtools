@@ -1,3 +1,18 @@
+-- sometimes, VDFs are case insensitive and use all lowercase for field names!
+-- what the hell, Valve
+local vdf_mt = {}
+
+function vdf_mt:__index(key)
+    return rawget(self, key:lower())
+end
+
+function vdf_mt:__newindex(key, value)
+    if rawget(self, key:lower()) then
+        return rawset(self, key:lower(), value)
+    else
+        return rawset(self, key, value)
+    end
+end
 
 -- parse a string containing VDF data
 function steam.parseVDF(buf)
@@ -24,7 +39,7 @@ function steam.parseVDF(buf)
         return token
     end
     
-    local vdf = {}
+    local vdf = setmetatable({}, vdf_mt)
     
     for key in tokens do
         local value = tokens()
