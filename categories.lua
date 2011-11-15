@@ -76,6 +76,14 @@ local function apply_user_categories(steam)
 end
 
 local function add_new_games(steam)
+    if #steam:games() == 0 then
+        io.eprintf("\n  WARNING: couldn't find any games in your Steam account!\n")
+        io.eprintf("  Make sure that your steamcommunity.com profile is public.\n")
+        io.eprintf("  If it already is, most likely steamcommunity is down; try again later.\n")
+        io.eprintf("  If you know steamcommunity.com is working and your profile is public,\n")
+        io.eprintF("  report this as a bug.\n\n")
+    end
+    
     for _,game in ipairs(steam:games()) do
         addgame(game)
     end
