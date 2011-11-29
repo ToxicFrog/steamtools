@@ -1,6 +1,8 @@
 At the moment the only programs in here that're really "release-ready" are steam2backloggery and categories.
 
     CATEGORIES
+
+Before using this program YOU MUST EXIT STEAM. If Steam is still running it will immediately overwrite any changes this tool attempts to make.
     
 To use it, double-click on categories.lua (or, if you downloaded the windows package, categories.exe). It will prompt you for the location of your Steam install - the easiest way to do this is to drag-and- drop your steam.exe into the window and press enter.
 
