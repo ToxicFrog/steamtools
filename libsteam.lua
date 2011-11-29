@@ -15,7 +15,7 @@ function steam:__tostring()
     end
 end
 
-function steam.open(path, X, Y, Z)
+function steam.open(path, name, X, Y, Z)
     -- strip trailing filename
     path = path:gsub("[/\\]?[^/\\]+$", "")
     
@@ -32,7 +32,7 @@ function steam.open(path, X, Y, Z)
     
     if X and Y and Z then
         self.X,self.Y,self.Z = X,Y,Z
-        self.name = "(unknown)"
+        self.name = name or "unknown_user"
     else
         -- no user ID specified - get last logged in user from log file
         local name,id
@@ -44,7 +44,7 @@ function steam.open(path, X, Y, Z)
             return nil,"Couldn't determine last logged in user from steam.log"
         end
         self.X,self.Y,self.Z = id:match("(%d+):(%d+):(%d+)")
-        self.name = name
+        self.name = name or self.name
     end
     
     return setmetatable(self, steam)
