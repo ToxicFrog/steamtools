@@ -8,11 +8,11 @@ function main(source)
         EDITOR = "notepad"
         IGNORE = ""
         
-        if loadfile("steam2backloggery.cfg") then
-            loadfile("steam2backloggery.cfg")()
+        if loadfile("steamtools.cfg") then
+            loadfile("steamtools.cfg")()
         else
-            io.eprintf("Warning: couldn't load steam2backloggery.cfg\nError message was: %s\nUsing default settings\n\n"
-                     , tostring(select(2, loadfile("steam2backloggery.cfg"))))
+            io.eprintf("Warning: couldn't load steamtools.cfg\nError message was: %s\nUsing default settings\n\n"
+                     , tostring(select(2, loadfile("steamtools.cfg"))))
         end
     end
     
@@ -111,7 +111,7 @@ function main(source)
     
     if #games == 0 then
         io.printf("No games to add - all of your Steam games are either already\n"
-                .."on Backloggery, or in your steam2backloggery.cfg ignore list.\n")
+                .."on Backloggery, or in your steamtools.cfg ignore list.\n")
         return 0
     end
     

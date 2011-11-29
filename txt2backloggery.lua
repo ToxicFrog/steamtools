@@ -7,11 +7,11 @@ function main(source)
         EDITOR = "notepad"
         IGNORE = ""
         
-        if loadfile("steam2backloggery.cfg") then
-            loadfile("steam2backloggery.cfg")()
+        if loadfile("steamtools.cfg") then
+            loadfile("steamtools.cfg")()
         else
-            io.eprintf("Warning: couldn't load steam2backloggery.cfg\nError message was: %s\nUsing default settings\n\n"
-                     , tostring(select(2, loadfile("steam2backloggery.cfg"))))
+            io.eprintf("Warning: couldn't load steamtools.cfg\nError message was: %s\nUsing default settings\n\n"
+                     , tostring(select(2, loadfile("steamtools.cfg"))))
         end
     end
     

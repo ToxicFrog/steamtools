@@ -20,7 +20,7 @@ Once it has the game lists, it will create a file listing all of the games it's 
 
 When you close the editor, it will prompt you for a Backloggery category to use, and then add entries for all of the listed games to Backloggery. It is recommended that you use "PC", "PCDL" (PC Download), or "Steam" as the category, but it won't stop you from filing them under PS2 or SNES or whatever. If you enter a category that Backloggery doesn't support, it'll re-prompt.
 
-There is also a configuration file, "steam2backloggery.cfg", for configuring commonly used settings. The contents of this file should be fairly self- explanatory, but here is brief list of settings you can configure:
+There is also a configuration file, "steamtools.cfg", for configuring commonly used settings. The contents of this file should be fairly self- explanatory, but here is brief list of settings you can configure:
 
     STEAM       Location of Steam.exe
     USER,PASS   Login information for Backloggery
