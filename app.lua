@@ -1,3 +1,5 @@
+package.path = package.path..";lib/?.lua"
+
 require "util.io"
 require "util.misc"
 
