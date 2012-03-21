@@ -1,0 +1,5 @@
+Versão adaptada para Lua 5.x apartir de
+http://lua-users.org/wiki/LuaXml
+
+Download
+http://manoelcampos.com/files/LuaXML-0.0.0-lua5.1.tgz
