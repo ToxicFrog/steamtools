@@ -239,6 +239,7 @@ function bl:addgame(game)
         region = "0";
         own = "1";
         complete = false; -- to be filled in
+        --unplayed = "1"; -- caller needs to set this if they want it
         achieve1 = "";
         achieve2 = "";
         online = "";
@@ -297,7 +298,9 @@ local function getAllGames(self, wishlist, games)
         local body = assert(request(self, fields, "GET", "http://backloggery.com/ajax_moregames.php"))
         
         for gamebox in body:GFind("section", "class", "gamebox.*") do
-            if gamebox.class == "gamebox" or gamebox.class == "gamebox nowplaying" then
+            if gamebox:Find("img", "src", "images/compilation.gif") then
+                print("Skipping compilation:", gamebox:Find("b"):Content())
+            elseif gamebox.class == "gamebox" or gamebox.class == "gamebox nowplaying" then
                 local info = {}
                 info.name = gamebox:Find("b"):Content()
                 info.console = gamebox:Find("a", "href", "^games.php").href:match("console=([^&]+)")
@@ -342,7 +345,7 @@ local function getAllGames(self, wishlist, games)
         end
     end
     
-    repeat getMoreGames(wishlist) until not id or DEBUG.ONE_PAGE_ONLY
+    repeat getMoreGames(wishlist) until not id or CONFIG.DEBUG.ONE_PAGE_ONLY
     
     return games
 end

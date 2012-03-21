@@ -1,6 +1,8 @@
 At the moment the only programs in here that're really "release-ready" are steam2backloggery and categories.
 
     CATEGORIES
+
+Before using this program YOU MUST EXIT STEAM. If Steam is still running it will immediately overwrite any changes this tool attempts to make.
     
 To use it, double-click on categories.lua (or, if you downloaded the windows package, categories.exe). It will prompt you for the location of your Steam install - the easiest way to do this is to drag-and- drop your steam.exe into the window and press enter.
 
@@ -20,7 +22,7 @@ Once it has the game lists, it will create a file listing all of the games it's 
 
 When you close the editor, it will prompt you for a Backloggery category to use, and then add entries for all of the listed games to Backloggery. It is recommended that you use "PC", "PCDL" (PC Download), or "Steam" as the category, but it won't stop you from filing them under PS2 or SNES or whatever. If you enter a category that Backloggery doesn't support, it'll re-prompt.
 
-There is also a configuration file, "steam2backloggery.cfg", for configuring commonly used settings. The contents of this file should be fairly self- explanatory, but here is brief list of settings you can configure:
+There is also a configuration file, "steamtools.cfg", for configuring commonly used settings. The contents of this file should be fairly self- explanatory, but here is brief list of settings you can configure:
 
     STEAM       Location of Steam.exe
     USER,PASS   Login information for Backloggery

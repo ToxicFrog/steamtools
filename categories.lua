@@ -2,6 +2,7 @@ function initlibs()
     require "lfs"
     require "util.io"
     require "libsteam"
+    require "config"
     
     -- like lfs.dir, but returns an iterator over all directory entries that
     -- don't start with .
@@ -91,11 +92,12 @@ end
 
 function main(...)
     initlibs()
+    local cfg = config.load("steamtools.cfg")
     
     -- initialize Steam
-    local path = (...) or io.prompt("Steam location (drag-and drop steam.exe): ")
+    local path = (...) or cfg.STEAM or io.prompt("Steam location (drag-and drop steam.exe): ")
     
-    local steam,err = steam.open(path:gsub('^"(.*)"$', '%1'))
+    local steam,err = steam.open(path:gsub('^"(.*)"$', '%1'), cfg.STEAMNAME, unpack(cfg.STEAMID or {}))
     if not steam then
         io.eprintf("Couldn't read Steam directory: %s\n", err)
         return 1

@@ -4,7 +4,9 @@ require "util.string"
 require "util.table"
 
 steam = {}
+package.loaded.steam = steam
 require "libsteam.vdf"
+require "libsteam.games"
 
 steam.__index = steam
 function steam:__tostring()
@@ -15,7 +17,7 @@ function steam:__tostring()
     end
 end
 
-function steam.open(path, X, Y, Z)
+function steam.open(path, name, X, Y, Z)
     -- strip trailing filename
     path = path:gsub("[/\\]?[^/\\]+$", "")
     
@@ -32,7 +34,7 @@ function steam.open(path, X, Y, Z)
     
     if X and Y and Z then
         self.X,self.Y,self.Z = X,Y,Z
-        self.name = "(unknown)"
+        self.name = name or "unknown_user"
     else
         -- no user ID specified - get last logged in user from log file
         local name,id
@@ -44,59 +46,10 @@ function steam.open(path, X, Y, Z)
             return nil,"Couldn't determine last logged in user from steam.log"
         end
         self.X,self.Y,self.Z = id:match("(%d+):(%d+):(%d+)")
-        self.name = name
+        self.name = name or self.name
     end
     
     return setmetatable(self, steam)
-end
-
-local function get_gamelist(url)
-    local page,err = socket.http.request(url)
-    if not page then return page,err end
-
-    local games = {}
-
-    for id,name in page:gmatch('id="game_(%d+)">.-<h4>([^<]+)</h4>') do
-        games[#games+1] = {
-            appid = tonumber(id:trim());
-            name = name:trim();
-        }
-    end
-    
-    return games
-end
-
-local function games_aux(self, key, name, url)
-    if not self[name] then
-        local list,err = get_gamelist(url)
-        if not list then
-            return nil,err
-        end
-        
-        self[name] = list
-    end
-    
-    local games
-    if key then
-        games = {}
-        for _,game in ipairs(self[name]) do
-            games[game[key]] = game
-        end
-    else
-        games = table.copy(self[name])
-    end
-    return games
-end
-
--- return the list of all games the user owns, optionally indexed by key
-function steam:games(key)
-    return games_aux(self, key, "_games", self:community_url().."/games?tab=all")
-end
-
--- return the list of all games the user has on their wishlist, optionally
--- indexed by key
-function steam:wishlist(key)
-    return games_aux(self, key, "_wishlist", self:community_url().."/wishlist/")
 end
 
 -- return the URL of this user's Steam Community page
