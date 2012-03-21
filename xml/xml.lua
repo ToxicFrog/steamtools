@@ -156,7 +156,7 @@
 ---Parses a XML string
 --@param handler Handler object to be used to convert the XML string
 --to another formats. @see handler.lua
-xmlParser = function(handler)     
+return function(handler)     
     local obj = {}
     -- Public attributes 
 
