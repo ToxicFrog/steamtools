@@ -1,7 +1,15 @@
-LIBS="app.lua libbl.lua libsteam.lua libsteam/* xml/*.lua util/* config.lua html.lua lib/*.lua lib/socket/*.lua"
+#!/bin/bash
+#LIBS="app.lua libbl.lua libsteam.lua libsteam/* xml/*.lua util/* config.lua html.lua lib/*.lua lib/socket/*.lua"
+LIBS="app.lua libbl.lua libsteam.lua config.lua html.lua lib xml util libsteam steam2backloggery.lua clearbackloggery.lua"
 
-enceladus -t ~/bin/enceladus.exe -o embed.exe steam2backloggery.lua app.lua $LIBS
-mv steam2backloggery.lua-embed.exe bin/steam2backloggery.exe
+rsync -r $LIBS bin/
 
-enceladus -t ~/bin/enceladus.exe -o embed.exe categories.lua $LIBS
-mv categories.lua-embed.exe bin/categories.exe
+function mkmain() {
+  echo "require '$1'" > main.lua
+}
+
+for app in steam2backloggery clearbackloggery; do
+  mkmain $app
+  enceladus -t ~/bin/enceladus.exe -o embed.exe main.lua
+  mv main.lua-embed.exe bin/$app.exe
+done
