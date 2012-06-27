@@ -2,14 +2,16 @@
 #LIBS="app.lua libbl.lua libsteam.lua libsteam/* xml/*.lua util/* config.lua html.lua lib/*.lua lib/socket/*.lua"
 LIBS="app.lua libbl.lua libsteam.lua config.lua html.lua lib xml util libsteam steam2backloggery.lua clearbackloggery.lua"
 
-rsync -r $LIBS bin/
+#rsync -r $LIBS bin/
 
 function mkmain() {
-  echo "require '$1'" > main.lua
+  echo "package.cpath = package.cpath .. ';lib/?.dll'; require '$1'" > main.lua
 }
 
 for app in steam2backloggery clearbackloggery; do
   mkmain $app
   enceladus -t ~/bin/enceladus.exe -o embed.exe main.lua
-  mv main.lua-embed.exe bin/$app.exe
+  mv main.lua-embed.exe $app.exe
 done
+
+rm main.lua
