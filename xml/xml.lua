@@ -164,7 +164,7 @@ return function(handler)
                     stripWS = 1, 
                     expandEntities = 1,
                     errorHandler = function(err,pos) 
-                                       error(format("%s [char=%d]\n",
+                                       error(string.format("%s [char=%d]\n",
                                                err or "Parse Error",pos))
                                    end,
                   }
