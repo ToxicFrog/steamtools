@@ -10,8 +10,7 @@ function mkmain() {
 
 for app in steam2backloggery clearbackloggery; do
   mkmain $app
-  enceladus -t ~/bin/enceladus.exe -o embed.exe main.lua
-  mv main.lua-embed.exe $app.exe
+  enceladus -t ~/bin/enceladus.exe -o $app.exe main.lua
 done
 
 rm main.lua

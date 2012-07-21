@@ -15,7 +15,7 @@ local function download_XML(url)
     for _,xgame in ipairs(dom.root.gamesList.games) do
         local game = {}
         for _,key in ipairs(xgame) do
-            game[key._name] = key.TEXT
+            game[key._name] = key.TEXT:trim()
         end
         table.insert(games, game)
     end
@@ -41,7 +41,7 @@ end
 
 local function mapby(list, key)
     local games = {}
-    for _,game in ipairs(self[name]) do
+    for _,game in ipairs(list) do
         games[game[key]] = game
     end
     return games
@@ -65,7 +65,7 @@ function steam:games(key)
     local games = download(self, "_games", download_XML, self:community_url().."/games?tab=all&xml=1")
     
     if key then
-        return mapby(games, key)
+        return mapby(self, games, key)
     end
     return table.copy(games)
 end

@@ -64,7 +64,7 @@ function filtergames(steam, cookie)
     io.printf(" %d owned games,", count); io.flush(); count = 0
     for _,game in pairs(steam:wishlist()) do
         count = count+1
-        if not cookie:hasgame(game.name) and not CONFIG:ignored(game.name) then
+        if not cookie:hasgame(game.name) and not CONFIG:ignored(game.name) and not CONFIG:ignored("WISHLIST") then
             games[#games+1] = {
                 name = game.name;
                 status = "wishlist";
